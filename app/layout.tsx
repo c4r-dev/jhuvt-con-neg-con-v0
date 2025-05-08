@@ -18,8 +18,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Block Randomization Generator</title>
-        <meta name="description" content="Learn block randomization interactively" />
+        <title>Set Controls for a Control Group</title>
+        <meta name="description" content="Set Controls for a Control Group" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body>
@@ -39,7 +39,7 @@ export default function RootLayout({
             />
           </button>
           <div className="title-container"> {/* Title container class */}
-            <h1 className="title">Block Randomization Generator</h1> {/* Title class */}
+            <h1 className="title">Set Controls for a Control Group</h1> {/* Title class */}
           </div>
         </header>
         <main>{children}</main>
