@@ -17,11 +17,13 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+
       <head>
-        <title>Set Controls for a Control Group</title>
-        <meta name="description" content="Set Controls for a Control Group" />
+        <title>Set Negative Controls for a Control Group</title>
+        <meta name="description" content="Set Negative Controls for a Control Group" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
+
       <body>
         <header className="header"> {/* Header class from globals.css */}
           <button
@@ -39,11 +41,14 @@ export default function RootLayout({
             />
           </button>
           <div className="title-container"> {/* Title container class */}
-            <h1 className="title">Set Controls for a Control Group</h1> {/* Title class */}
+            <h1 className="title">Set Negative Controls for a Control Group</h1> {/* Title class */}
           </div>
         </header>
+
         <main>{children}</main>
+        
       </body>
+
     </html>
   );
 }
