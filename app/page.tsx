@@ -66,11 +66,6 @@ export default function Home() {
     setSelectedQuestionId(null);
   };
 
-  const handleNextFeatureClick = () => {
-    console.log("Next Feature button clicked - implement logic.");
-    alert("Next Feature clicked! (Functionality TBD)");
-  };
-
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
   const newBaseButtonStyle: React.CSSProperties = {
@@ -115,10 +110,10 @@ export default function Home() {
                 <li key={q.id} style={{ marginBottom: '0' }}>
                   <button
                     onClick={() => handleQuestionSelection(q.id)}
-                    className="button"
+                    className="button" // Assumes .button class no longer has text-transform
                     style={{
-                      ...newBaseButtonStyle, // Apply base style
-                      marginBottom: '10px', // Spacing between question buttons
+                      ...newBaseButtonStyle,
+                      marginBottom: '10px',
                       width: '100%',
                       textAlign: 'left',
                       backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined),
@@ -178,15 +173,16 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Placeholder for where control definition UI would go */}
           <div style={{marginTop: '30px', minHeight: '50px'}}>
-             {selectionLocked && <p style={{textAlign:'center', fontStyle:'italic', color:'#555'}}>(Control definition area)</p>}
+             {/* This is where you would dynamically add input elements */}
           </div>
 
           {/* === CONDITIONAL BUTTON DISPLAY === */}
 
           {/* Initial NEXT button - centered */}
           {!selectionLocked && selectedQuestionId && (
-            <div style={{ marginTop: '30px', textAlign: 'center' }}> {/* Changed to 'center' */}
+            <div style={{ marginTop: '-18px', textAlign: 'center' }}>
               <button
                 onClick={handleLockSelectionClick}
                 className="button"
@@ -200,30 +196,23 @@ export default function Home() {
             </div>
           )}
 
-          {/* Go Back / Next Feature buttons - centered */}
+          {/* Go Back button - centered */}
           {selectionLocked && (
-            <div style={{ marginTop: '30px', textAlign: 'center' }}>
+            <div style={{ marginTop: '-18px', textAlign: 'center' }}>
+              {/* === INSERTED TEXT HERE === */}
+              <p style={{ fontStyle: 'italic', color: 'red', marginBottom: '15px', marginTop: '10px' /* Added top margin */ }}>
+                Dave go here - Box for interactive table.
+              </p>
+              {/* === END OF INSERTED TEXT === */}
               <button
                 onClick={handleGoBackClick}
                 className="button"
                 style={{
                   ...newBaseButtonStyle,
-                  marginRight: '10px',
                   marginBottom: '0'
                 }}
               >
-                Go Back
-              </button>
-              <button
-                onClick={handleNextFeatureClick}
-                className="button"
-                style={{
-                  ...newBaseButtonStyle,
-                  marginLeft: '10px',
-                  marginBottom: '0'
-                }}
-              >
-                Next Feature
+                GO BACK
               </button>
             </div>
           )}
