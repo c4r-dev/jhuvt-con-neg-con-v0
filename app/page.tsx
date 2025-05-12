@@ -56,9 +56,8 @@ export default function Home() {
         alert("Please select a question before proceeding.");
         return;
     }
-    console.log('NEXT button clicked. Question selection is locked, and question list is hidden.');
+    console.log('NEXT button clicked. Question selection is locked, question list and NEXT button are hidden.');
     setSelectionLocked(true);
-    // alert('NEXT button clicked! Question selection is now locked. (Check console for more info)'); // Alert can be removed or kept based on preference
   };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -74,7 +73,6 @@ export default function Home() {
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '40px auto 20px auto' }}>
-      {/* Conditionally render the question selection part */}
       {!selectionLocked && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
@@ -89,7 +87,7 @@ export default function Home() {
                   <button
                     onClick={() => handleQuestionSelection(q.id)}
                     className="button"
-                    disabled={selectionLocked} // This will always be false if this section is visible, but good for consistency
+                    disabled={selectionLocked}
                     style={{
                       ...newBaseButtonStyle,
                       width: '100%',
@@ -114,9 +112,8 @@ export default function Home() {
         </>
       )}
 
-      {/* Details of the selected question - remains visible after NEXT is clicked if a question was selected */}
       {selectedQuestion && (
-        <div style={{ marginTop: selectionLocked ? '0' : '30px', /* Adjust margin if list is hidden */ padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <div style={{ marginTop: selectionLocked ? '0' : '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
 
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
@@ -150,24 +147,24 @@ export default function Home() {
           </div>
 
           <div style={{marginTop: '20px'}}>
-            {/* You would add your form elements for defining controls in this area. */}
+            {/* This is where you would add your form elements for defining controls */}
+            {/* For example, based on selectedQuestion.methodologicalConsiderations */}
           </div>
 
-          {/* NEXT button is only shown if a question has been selected and selection isn't locked OR if selection is locked (to prevent multiple clicks having an effect but still be visible) */}
-          {/* Or simply always show if selectedQuestion is true, its action is now guarded by selectionLocked state */}
-          <div style={{ marginTop: '30px', textAlign: 'right' }}>
-            <button
-              onClick={handleNextButtonClick}
-              className="button"
-              // disabled={selectionLocked} // Optionally disable NEXT button after first click
-              style={{
-                ...newBaseButtonStyle,
-                // opacity: selectionLocked ? 0.65 : 1 // Optional: visually disable NEXT too
-              }}
-            >
-              NEXT
-            </button>
-          </div>
+          {/* Conditionally render the NEXT button */}
+          {!selectionLocked && (
+            <div style={{ marginTop: '30px', textAlign: 'right' }}>
+              <button
+                onClick={handleNextButtonClick}
+                className="button"
+                style={{
+                  ...newBaseButtonStyle,
+                }}
+              >
+                NEXT
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
