@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Interface for the question structure (assuming it includes methodologicalConsiderations)
+// Interface for the question structure
 interface MethodologicalConsideration {
   feature: string;
   description: string;
@@ -52,64 +52,71 @@ export default function Home() {
   };
 
   const handleNextButtonClick = () => {
-    console.log('NEXT button clicked. Question selection will be locked.');
+    if (!selectedQuestionId) {
+        alert("Please select a question before proceeding.");
+        return;
+    }
+    console.log('NEXT button clicked. Question selection is locked, and question list is hidden.');
     setSelectionLocked(true);
-    alert('NEXT button clicked! Question selection is now locked. (Check console for more info)');
+    // alert('NEXT button clicked! Question selection is now locked. (Check console for more info)'); // Alert can be removed or kept based on preference
   };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
-  // Define the new base button style
   const newBaseButtonStyle: React.CSSProperties = {
     padding: '10px 15px',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
-    marginBottom: '20px', // Applied as per your request
+    marginBottom: '20px',
   };
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '40px auto 20px auto' }}>
-      <h2>Select a Question for Your Experiment:</h2>
+      {/* Conditionally render the question selection part */}
+      {!selectionLocked && (
+        <>
+          <h2>Select a Question for Your Experiment:</h2>
 
-      {loading && <p>Loading questions...</p>}
-      {error && <p style={{ color: 'red' }}>Error loading questions: {error}</p>}
+          {loading && <p>Loading questions...</p>}
+          {error && <p style={{ color: 'red' }}>Error loading questions: {error}</p>}
 
-      {!loading && !error && questions.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {questions.map((q) => (
-            <li key={q.id} style={{ marginBottom: '0' /* Adjusted li margin as button now has more margin */ }}>
-              <button
-                onClick={() => handleQuestionSelection(q.id)}
-                className="button" // Base class from globals.css for background/color
-                disabled={selectionLocked}
-                style={{
-                  ...newBaseButtonStyle, // Apply the new base style
-                  width: '100%', // Specific to question buttons
-                  textAlign: 'left', // Specific to question buttons
-                  // Conditional overrides
-                  cursor: selectionLocked ? 'not-allowed' : newBaseButtonStyle.cursor,
-                  backgroundColor: selectionLocked
-                    ? '#555e66' // Disabled color
-                    : (selectedQuestionId === q.id ? '#6F00FF' : undefined), // Selected color, undefined allows CSS class to apply for default
-                  opacity: selectionLocked ? 0.65 : 1,
-                  // color: 'white' // This will come from .button class in globals.css
-                }}
-              >
-                {q.question}
-              </button>
-            </li>
-          ))}
-        </ul>
+          {!loading && !error && questions.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {questions.map((q) => (
+                <li key={q.id} style={{ marginBottom: '0' }}>
+                  <button
+                    onClick={() => handleQuestionSelection(q.id)}
+                    className="button"
+                    disabled={selectionLocked} // This will always be false if this section is visible, but good for consistency
+                    style={{
+                      ...newBaseButtonStyle,
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: selectionLocked ? 'not-allowed' : newBaseButtonStyle.cursor,
+                      backgroundColor: selectionLocked
+                        ? '#555e66'
+                        : (selectedQuestionId === q.id ? '#6F00FF' : undefined),
+                      opacity: selectionLocked ? 0.65 : 1,
+                    }}
+                  >
+                    {q.question}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {!loading && !error && questions.length === 0 && (
+            <p>No questions found. Make sure &apos;questions.json&apos; is in the public folder and correctly formatted.</p>
+          )}
+        </>
       )}
 
-      {!loading && !error && questions.length === 0 && (
-        <p>No questions found. Make sure &apos;questions.json&apos; is in the public folder and correctly formatted.</p>
-      )}
-
+      {/* Details of the selected question - remains visible after NEXT is clicked if a question was selected */}
       {selectedQuestion && (
-        <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <div style={{ marginTop: selectionLocked ? '0' : '30px', /* Adjust margin if list is hidden */ padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
 
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
@@ -146,14 +153,16 @@ export default function Home() {
             {/* You would add your form elements for defining controls in this area. */}
           </div>
 
+          {/* NEXT button is only shown if a question has been selected and selection isn't locked OR if selection is locked (to prevent multiple clicks having an effect but still be visible) */}
+          {/* Or simply always show if selectedQuestion is true, its action is now guarded by selectionLocked state */}
           <div style={{ marginTop: '30px', textAlign: 'right' }}>
             <button
               onClick={handleNextButtonClick}
-              className="button" // Base class from globals.css for background/color
+              className="button"
+              // disabled={selectionLocked} // Optionally disable NEXT button after first click
               style={{
-                ...newBaseButtonStyle, // Apply the new base style
-                // padding: '10px 20px', // Original padding for NEXT button if you want to keep it different, else newBaseButtonStyle.padding is used.
-                // marginBottom: '0' // If the parent div handles all bottom margin
+                ...newBaseButtonStyle,
+                // opacity: selectionLocked ? 0.65 : 1 // Optional: visually disable NEXT too
               }}
             >
               NEXT
