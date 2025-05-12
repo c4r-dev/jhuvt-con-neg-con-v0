@@ -3,18 +3,100 @@
     "id": 1,
     "question": "Does neuroserpin induce axonal elongation?",
     "independentVariable": "Neuroserpin exposure",
-    "dependentVariable": "Axon length"
+    "dependentVariable": "Axon length",
+    "methodologicalConsiderations": [
+      {
+        "feature": "Sterilization protocol",
+        "description": "Each step of the sterilization protocol could introduce factors that may impact neuronal development, such as cross-contamination or the introduction of an unknown growth factor."
+      },
+      {
+        "feature": "Incubation procedure",
+        "description": "Minor procedural details like the temperature uniformity in the incubator could impact neuronal development."
+      },
+      {
+        "feature": "Neuroserpin Processing",
+        "description": "Depending on how the neuroserpin was processed & purified, there may be recombinant protein artefacts that could have an effect on neuronal development."
+      },
+      {
+        "feature": "Neuron selection",
+        "description": "Your cultures will feature many cells, not all of which will be viable for analysis, and it may not be feasible to measure the length of every single axon. Could the way you handle this impact your results?"
+      },
+      {
+        "feature": "Evaluation Timing",
+        "description": "Your cells might well grow more mature the more time they are afforded, and they may even grow at variable rates. If cell growth depends on cultivation period, how would you manage the timing of the evaluation step(s)?"
+      },
+      {
+        "feature": "Dosage Regiment",
+        "description": "The dose of neuroserpin to which cultures are exposed."
+      }
+    ]
   },
   {
     "id": 2,
     "question": "Does rhythmic sensory stimulation improve fibromyalgia symptoms?",
     "independentVariable": "Sensory stimulation",
-    "dependentVariable": "Fibromyalgia symptom survey results"
+    "dependentVariable": "Fibromyalgia symptom survey results",
+    "methodologicalConsiderations": [
+      {
+        "feature": "Rhythmicity",
+        "description": "Whether the sensory stimulation is rhythmic in nature, and if so, what that rhythm is."
+      },
+      {
+        "feature": "Intensity",
+        "description": "The intensity of the stimulation."
+      },
+      {
+        "feature": "Stimulation Environment",
+        "description": "Since patients are self-administering the sensory stimulation, they may end up doing so in different environments."
+      },
+      {
+        "feature": "Stimulation Schedule",
+        "description": "When and how often patients are instructed to self-administer the stimulation."
+      },
+      {
+        "feature": "Treatment expectation",
+        "description": "The study-related information that is available to patients."
+      },
+      {
+        "feature": "Report Paradigm",
+        "description": "The procedure describing when and what patients should report in their treatment log."
+      }
+    ]
   },
   {
     "id": 3,
     "question": "What is the effect of Rareberry consumption on time to fall off rotarod in Drosophila melanogaster?",
     "independentVariable": "Rareberry consumption",
-    "dependentVariable": "Time to fall off rotarod"
+    "dependentVariable": "Time to fall off rotarod",
+    "methodologicalConsiderations": [
+      {
+        "feature": "Feeding protocol",
+        "description": "The time and frequency with which rodents are fed."
+      },
+      {
+        "feature": "Experimenter",
+        "description": "Who is collecting a given measurement? Rodents that are particularly scared of or comfortable with a given experimenter may perform differently."
+      },
+      {
+        "feature": "Testing schedule",
+        "description": "When and how often rotarod tests are performed could well impact the results you see."
+      },
+      {
+        "feature": "Nutritional Content",
+        "description": "Nutritional properties of the food rodent are fed, such as antioxidants or caloric content."
+      },
+      {
+        "feature": "Food Preferences",
+        "description": "The taste, look, and texture of the food rodents are fed, such as sweetness, color, or surface tension."
+      },
+      {
+        "feature": "Food Processing",
+        "description": "The food rodents will be eating could be processed in various ways that could impact results, such as refrigeration (affecting temperature) or pulverization (affecting texture)."
+      },
+      {
+        "feature": "Testing Parameters",
+        "description": "The number and frequency of rotarod runs to which rodents are subjected."
+      }
+    ]
   }
 ]

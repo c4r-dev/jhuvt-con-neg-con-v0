@@ -3,12 +3,18 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Updated interface for the question structure
+// Interface for the question structure (assuming it includes methodologicalConsiderations)
+interface MethodologicalConsideration {
+  feature: string;
+  description: string;
+}
+
 interface Question {
   id: number;
   question: string;
   independentVariable: string;
   dependentVariable: string;
+  methodologicalConsiderations?: MethodologicalConsideration[];
 }
 
 export default function Home() {
@@ -49,10 +55,19 @@ export default function Home() {
     console.log('NEXT button clicked. Question selection will be locked.');
     setSelectionLocked(true);
     alert('NEXT button clicked! Question selection is now locked. (Check console for more info)');
-    // Implement further logic for the NEXT step here
   };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
+
+  // Define the new base button style
+  const newBaseButtonStyle: React.CSSProperties = {
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    marginBottom: '20px', // Applied as per your request
+  };
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '40px auto 20px auto' }}>
@@ -64,25 +79,22 @@ export default function Home() {
       {!loading && !error && questions.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {questions.map((q) => (
-            <li key={q.id} style={{ marginBottom: '10px' }}>
+            <li key={q.id} style={{ marginBottom: '0' /* Adjusted li margin as button now has more margin */ }}>
               <button
                 onClick={() => handleQuestionSelection(q.id)}
-                className="button"
+                className="button" // Base class from globals.css for background/color
                 disabled={selectionLocked}
                 style={{
-                  padding: '10px 15px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  fontSize: '1rem',
-                  width: '100%',
-                  textAlign: 'left',
-                  color: 'white',
-                  marginBottom: '5px',
-                  cursor: selectionLocked ? 'not-allowed' : 'pointer',
+                  ...newBaseButtonStyle, // Apply the new base style
+                  width: '100%', // Specific to question buttons
+                  textAlign: 'left', // Specific to question buttons
+                  // Conditional overrides
+                  cursor: selectionLocked ? 'not-allowed' : newBaseButtonStyle.cursor,
                   backgroundColor: selectionLocked
-                    ? '#555e66'
-                    : (selectedQuestionId === q.id ? '#6F00FF' : '#020202'),
+                    ? '#555e66' // Disabled color
+                    : (selectedQuestionId === q.id ? '#6F00FF' : undefined), // Selected color, undefined allows CSS class to apply for default
                   opacity: selectionLocked ? 0.65 : 1,
+                  // color: 'white' // This will come from .button class in globals.css
                 }}
               >
                 {q.question}
@@ -92,11 +104,9 @@ export default function Home() {
         </ul>
       )}
 
-      {/* === MODIFIED LINE HERE === */}
       {!loading && !error && questions.length === 0 && (
         <p>No questions found. Make sure &apos;questions.json&apos; is in the public folder and correctly formatted.</p>
       )}
-      {/* === END OF MODIFICATION === */}
 
       {selectedQuestion && (
         <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
@@ -139,10 +149,11 @@ export default function Home() {
           <div style={{ marginTop: '30px', textAlign: 'right' }}>
             <button
               onClick={handleNextButtonClick}
-              className="button"
+              className="button" // Base class from globals.css for background/color
               style={{
-                padding: '10px 20px',
-                fontSize: '1rem',
+                ...newBaseButtonStyle, // Apply the new base style
+                // padding: '10px 20px', // Original padding for NEXT button if you want to keep it different, else newBaseButtonStyle.padding is used.
+                // marginBottom: '0' // If the parent div handles all bottom margin
               }}
             >
               NEXT
