@@ -16,7 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
-  const [selectionLocked, setSelectionLocked] = useState<boolean>(false); // New state variable
+  const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -42,15 +42,12 @@ export default function Home() {
   }, []);
 
   const handleQuestionSelection = (id: number) => {
-    // This function is implicitly controlled by the 'disabled' prop on the button
-    // but as a safeguard, you could also check here:
-    // if (selectionLocked) return;
     setSelectedQuestionId(id);
   };
 
   const handleNextButtonClick = () => {
     console.log('NEXT button clicked. Question selection will be locked.');
-    setSelectionLocked(true); // Lock the question selection
+    setSelectionLocked(true);
     alert('NEXT button clicked! Question selection is now locked. (Check console for more info)');
     // Implement further logic for the NEXT step here
   };
@@ -70,8 +67,8 @@ export default function Home() {
             <li key={q.id} style={{ marginBottom: '10px' }}>
               <button
                 onClick={() => handleQuestionSelection(q.id)}
-                className="button" // Your base button class
-                disabled={selectionLocked} // Disable button if selection is locked
+                className="button"
+                disabled={selectionLocked}
                 style={{
                   padding: '10px 15px',
                   border: '1px solid #ccc',
@@ -83,9 +80,9 @@ export default function Home() {
                   marginBottom: '5px',
                   cursor: selectionLocked ? 'not-allowed' : 'pointer',
                   backgroundColor: selectionLocked
-                    ? '#555e66' // A typical disabled color
-                    : (selectedQuestionId === q.id ? '#6F00FF' : '#020202'), // Active/selected colors
-                  opacity: selectionLocked ? 0.65 : 1, // Visual cue for disabled state
+                    ? '#555e66'
+                    : (selectedQuestionId === q.id ? '#6F00FF' : '#020202'),
+                  opacity: selectionLocked ? 0.65 : 1,
                 }}
               >
                 {q.question}
@@ -95,9 +92,11 @@ export default function Home() {
         </ul>
       )}
 
+      {/* === MODIFIED LINE HERE === */}
       {!loading && !error && questions.length === 0 && (
-        <p>No questions found. Make sure 'questions.json' is in the public folder and correctly formatted.</p>
+        <p>No questions found. Make sure &apos;questions.json&apos; is in the public folder and correctly formatted.</p>
       )}
+      {/* === END OF MODIFICATION === */}
 
       {selectedQuestion && (
         <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
