@@ -51,13 +51,24 @@ export default function Home() {
     setSelectedQuestionId(id);
   };
 
-  const handleNextButtonClick = () => {
+  const handleLockSelectionClick = () => {
     if (!selectedQuestionId) {
         alert("Please select a question before proceeding.");
         return;
     }
-    console.log('NEXT button clicked. Question selection is locked, question list and NEXT button are hidden.');
+    console.log('Selection locked. Question list and initial NEXT button hidden.');
     setSelectionLocked(true);
+  };
+
+  const handleGoBackClick = () => {
+    console.log('Go Back clicked. Resetting selection.');
+    setSelectionLocked(false);
+    setSelectedQuestionId(null);
+  };
+
+  const handleNextFeatureClick = () => {
+    console.log("Next Feature button clicked - implement logic.");
+    alert("Next Feature clicked! (Functionality TBD)");
   };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -68,10 +79,8 @@ export default function Home() {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
-    marginBottom: '20px',
   };
 
-  // Define a common style for the info boxes to ensure consistency
   const infoBoxStyle: React.CSSProperties = {
     flex: 1,
     border: '1px solid #ddd',
@@ -87,7 +96,7 @@ export default function Home() {
     color: '#333',
     borderBottom: '1px solid #eee',
     paddingBottom: '5px',
-    fontSize: '1rem' // Ensure consistent header size
+    fontSize: '1rem'
   };
 
 
@@ -107,16 +116,14 @@ export default function Home() {
                   <button
                     onClick={() => handleQuestionSelection(q.id)}
                     className="button"
-                    disabled={selectionLocked}
                     style={{
-                      ...newBaseButtonStyle,
+                      ...newBaseButtonStyle, // Apply base style
+                      marginBottom: '10px', // Spacing between question buttons
                       width: '100%',
                       textAlign: 'left',
-                      cursor: selectionLocked ? 'not-allowed' : newBaseButtonStyle.cursor,
-                      backgroundColor: selectionLocked
-                        ? '#555e66'
-                        : (selectedQuestionId === q.id ? '#6F00FF' : undefined),
-                      opacity: selectionLocked ? 0.65 : 1,
+                      backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined),
+                      opacity: 1,
+                      cursor: 'pointer',
                     }}
                   >
                     {q.question}
@@ -139,94 +146,89 @@ export default function Home() {
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
             Take a moment to consider which variable will define our intervention, and which will define our measurement.
           </p>
-
-          {/* Existing Independent and Dependent Variable Boxes */}
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '15px', marginBottom: '20px' }}>
             <div style={infoBoxStyle}>
-              <h4 style={infoBoxHeaderStyle}>
-                INDEPENDENT VARIABLE
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>
-                {selectedQuestion.independentVariable}
-              </p>
-              <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#777', fontStyle: 'italic' }}>
-                This is the variable that we plan to manipulate, control, or vary in the experiment.
-              </p>
+              <h4 style={infoBoxHeaderStyle}>INDEPENDENT VARIABLE</h4>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>{selectedQuestion.independentVariable}</p>
+              <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#777', fontStyle: 'italic' }}>This is the variable that we plan to manipulate, control, or vary in the experiment.</p>
             </div>
-
             <div style={infoBoxStyle}>
-              <h4 style={infoBoxHeaderStyle}>
-                DEPENDENT VARIABLE
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>
-                {selectedQuestion.dependentVariable}
-              </p>
-              <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#777', fontStyle: 'italic' }}>
-                This is the variable that we expect to be changing as a result of our manipulation.
-              </p>
+              <h4 style={infoBoxHeaderStyle}>DEPENDENT VARIABLE</h4>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>{selectedQuestion.dependentVariable}</p>
+              <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#777', fontStyle: 'italic' }}>This is the variable that we expect to be changing as a result of our manipulation.</p>
             </div>
           </div>
 
-          {/* === NEW FLEX BOX SECTION FOR METHODOLOGICAL FEATURES AND MEASUREMENT === */}
+          <h4 style={{ marginTop: '30px', marginBottom: '5px' }}>Defining the Intervention:</h4>
+          <p style={{ marginTop: '0', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>These are the Methodological Features we expect to factor into the experimental group. Hover over to review in greater detail.</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '20px' }}>
-            {/* First Inner Flex Box: Methodological Features */}
             <div style={infoBoxStyle}>
-              <h4 style={infoBoxHeaderStyle}>
-                Methodological Features
-              </h4>
+              <h4 style={infoBoxHeaderStyle}>Methodological Features</h4>
               {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                 <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: '#555' }}>
                   {selectedQuestion.methodologicalConsiderations.map((item, index) => (
-                    <li 
-                      key={index} 
-                      title={item.description} // Shows description on hover
-                      style={{ marginBottom: '8px', cursor: 'help' }}
-                    >
-                      {item.feature}
-                    </li>
+                    <li key={index} title={item.description} style={{ marginBottom: '8px', cursor: 'help' }}>{item.feature}</li>
                   ))}
                 </ul>
-              ) : (
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>
-                  No specific methodological features listed for this question.
-                </p>
-              )}
+              ) : ( <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>No specific methodological features listed for this question.</p> )}
             </div>
-
-            {/* Second Inner Flex Box: Measurement (Dependent Variable) */}
             <div style={infoBoxStyle}>
-              <h4 style={infoBoxHeaderStyle}>
-                Measurement
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>
-                {selectedQuestion.dependentVariable}
-              </p>
-              {/* You can add the descriptive text for dependent variable here too if you want */}
-              {/* <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#777', fontStyle: 'italic' }}>
-                  This is the variable that we expect to be changing as a result of our manipulation.
-              </p> */}
+              <h4 style={infoBoxHeaderStyle}>Measurement</h4>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>{selectedQuestion.dependentVariable}</p>
             </div>
           </div>
-          {/* === END OF NEW FLEX BOX SECTION === */}
 
-
-          <div style={{marginTop: '20px'}}>
-            {/* This is where you would add your form elements for defining controls */}
+          <div style={{marginTop: '30px', minHeight: '50px'}}>
+             {selectionLocked && <p style={{textAlign:'center', fontStyle:'italic', color:'#555'}}>(Control definition area)</p>}
           </div>
 
-          {!selectionLocked && (
-            <div style={{ marginTop: '30px', textAlign: 'right' }}>
+          {/* === CONDITIONAL BUTTON DISPLAY === */}
+
+          {/* Initial NEXT button - centered */}
+          {!selectionLocked && selectedQuestionId && (
+            <div style={{ marginTop: '30px', textAlign: 'center' }}> {/* Changed to 'center' */}
               <button
-                onClick={handleNextButtonClick}
+                onClick={handleLockSelectionClick}
                 className="button"
                 style={{
                   ...newBaseButtonStyle,
+                  marginBottom: '0'
                 }}
               >
                 NEXT
               </button>
             </div>
           )}
+
+          {/* Go Back / Next Feature buttons - centered */}
+          {selectionLocked && (
+            <div style={{ marginTop: '30px', textAlign: 'center' }}>
+              <button
+                onClick={handleGoBackClick}
+                className="button"
+                style={{
+                  ...newBaseButtonStyle,
+                  marginRight: '10px',
+                  marginBottom: '0'
+                }}
+              >
+                Go Back
+              </button>
+              <button
+                onClick={handleNextFeatureClick}
+                className="button"
+                style={{
+                  ...newBaseButtonStyle,
+                  marginLeft: '10px',
+                  marginBottom: '0'
+                }}
+              >
+                Next Feature
+              </button>
+            </div>
+          )}
+          {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
+
         </div>
       )}
     </div>
