@@ -53,8 +53,8 @@ export default function Home() {
 
   const handleLockSelectionClick = () => {
     if (!selectedQuestionId) {
-        alert("Please select a question before proceeding.");
-        return;
+      alert("Please select a question before proceeding.");
+      return;
     }
     console.log('Selection locked. Question list and initial NEXT button hidden.');
     setSelectionLocked(true);
@@ -174,7 +174,7 @@ export default function Home() {
                     <li key={index} title={item.description} style={{ marginBottom: '8px', cursor: 'help' }}>{item.feature}</li>
                   ))}
                 </ul>
-              ) : ( <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>No specific methodological features listed for this question.</p> )}
+              ) : (<p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>No specific methodological features listed for this question.</p>)}
             </div>
             <div style={infoBoxStyle}>
               <h4 style={infoBoxHeaderStyle}>Measurement</h4>
@@ -205,31 +205,31 @@ export default function Home() {
             <>
               {/* Box 1: Review Negative Control Info */}
               <div style={{ ...staticBoxStyle, marginTop: '8px' /* Further Reduced marginTop */ }}>
-                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold' }}>Review the complete negative control.</h5>
-                  <p style={{ fontSize: '0.9rem', color: '#555', margin: '5px 0 0 0' }}>
-                    This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
-                  </p>
+                <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold' }}>Review the complete negative control.</h5>
+                <p style={{ fontSize: '0.9rem', color: '#555', margin: '5px 0 0 0' }}>
+                  This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
+                </p>
               </div>
 
               {/* Box 2: Placeholder for Interactive Table */}
               <div style={{ ...staticBoxStyle, marginTop: '10px', /* Halved from 20px */ backgroundColor: '#fffcf0' }}>
-                  <p style={{ fontStyle: 'italic', color: 'orange', textAlign: 'center', margin: 0, fontWeight:'bold' }}>
-                    Dave go here - Box for interactive table.
-                  </p>
+                <p style={{ fontStyle: 'italic', color: 'orange', textAlign: 'center', margin: 0, fontWeight: 'bold' }}>
+                  Dave go here - Box for interactive table.
+                </p>
               </div>
 
               {/* GO BACK Button Container - centered and spaced below content */}
               <div style={{ marginTop: '15px', /* Halved from 30px */ textAlign: 'center' }}>
-                  <button
-                    onClick={handleGoBackClick}
-                    className="button"
-                    style={{
-                      ...newBaseButtonStyle,
-                      marginBottom: '0'
-                    }}
-                  >
-                      GO BACK
-                  </button>
+                <button
+                  onClick={handleGoBackClick}
+                  className="button"
+                  style={{
+                    ...newBaseButtonStyle,
+                    marginBottom: '0'
+                  }}
+                >
+                  GO BACK
+                </button>
               </div>
             </>
           )}
