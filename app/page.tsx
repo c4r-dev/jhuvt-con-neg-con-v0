@@ -55,6 +55,7 @@ export default function Home() {
     setSelectedQuestionId(id);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLockSelectionClick = () => {
     if (!selectedQuestionId) {
       alert("Please select a question before proceeding.");
@@ -303,7 +304,8 @@ export default function Home() {
                 </div>
 
                  {/* Button Container - Moved below the table, centered, flex for internal layout */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}> {/* Centered using justifyContent */}
+                 {/* Removed outer div with textAlign: 'center' and applied flex directly for centering buttons */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
                     {/* START OVER Button - Placed first for left position */}
                     <button
                       onClick={handleGoBackClick}
