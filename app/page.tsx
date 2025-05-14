@@ -221,78 +221,88 @@ export default function Home() {
           {/* UI shown only AFTER selection is locked */}
           {selectionLocked && (
             <>
-              {/* Box 1: Review Negative Control Info */}
-              <div style={{ ...staticBoxStyle, marginTop: '8px' /* Further Reduced marginTop */ }}>
-                <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold' }}>Review the complete negative control.</h5>
-                <p style={{ fontSize: '0.9rem', color: '#555', margin: '5px 0 0 0' }}>
-                  This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
-                </p>
-              </div>
+              {/* Combined Box for Instructions and Table */}
+              {/* Applied staticBoxStyle and contains both instruction blocks and the table */}
+              <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
+                {/* First Instruction Block */}
+                <div style={{ marginBottom: '20px' }}> {/* Added bottom margin for spacing */}
+                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
+                  <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}> {/* Increased font size */}
+                    This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
+                  </p>
+                </div>
 
-              {/* Box 2: Interactive Table */}
-              <div style={{ ...staticBoxStyle, marginTop: '10px' }}> {/* Applied staticBoxStyle and removed specific background */}
-              {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-                  <thead>
-                    <tr>
-                      {/* Styled Header for Methodological Feature with white border */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention with white border */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>INTERVENTION</th>
-                      {/* Styled Header for Complete with white border */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>COMPLETE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedQuestion.methodologicalConsiderations.map((item, index) => (
-                      <tr key={index}>
-                        {/* Styled Cell for Methodological Feature - Capitalized text */}
-                        <td
-                          key={index}
-                          title={item.description}
-                          style={{
+                {/* Second Instruction Block - Styled as instruction, larger text */}
+                <div style={{ marginBottom: '15px', color: '#333' }}> {/* Removed redundant fontSize, keeping other styles */}
+                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, design new controls with potential confounds in mind.</h5> {/* Increased font size */}
+                  <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}> {/* Increased font size, adjusted margin and color for consistency */}
+                    The interactive table below will update to allow you to consider how different components are handled across treatments.
+                  </p>
+                </div>
+
+                {/* Interactive Table */}
+                {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                    <thead>
+                      <tr>
+                        {/* Styled Header for Methodological Feature with white border */}
+                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>METHODOLOGICAL FEATURE</th>
+                        {/* Styled Header for Intervention with white border */}
+                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>INTERVENTION</th>
+                        {/* Styled Header for Complete with white border */}
+                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>COMPLETE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedQuestion.methodologicalConsiderations.map((item, index) => (
+                        <tr key={index}>
+                          {/* Styled Cell for Methodological Feature - Capitalized text */}
+                          <td
+                            key={index}
+                            title={item.description}
+                            style={{
+                              border: '1px solid #ddd',
+                              padding: '8px',
+                              cursor: 'help',
+                              backgroundColor: 'black', // Background color for first column
+                              color: 'white', // Text color for first column
+                              fontWeight: 'normal' // Set font weight to normal
+                            }}
+                          >
+                            {item.feature.toUpperCase()} {/* Capitalize the feature text */}
+                          </td>
+                          {/* Styled Cell for Intervention */}
+                          <td style={{
                             border: '1px solid #ddd',
                             padding: '8px',
-                            cursor: 'help',
-                            backgroundColor: 'black', // Background color for first column
-                            color: 'white', // Text color for first column
+                            backgroundColor: 'grey', // Background color for second column
+                            color: 'white', // Text color for second column
                             fontWeight: 'normal' // Set font weight to normal
-                          }}
-                        >
-                          {item.feature.toUpperCase()} {/* Capitalize the feature text */}
-                        </td>
-                        {/* Styled Cell for Intervention */}
-                        <td style={{
-                          border: '1px solid #ddd',
-                          padding: '8px',
-                          backgroundColor: 'grey', // Background color for second column
-                          color: 'white', // Text color for second column
-                          fontWeight: 'normal' // Set font weight to normal
-                        }}>
-                          BASE
-                        </td>
-                        {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
-                        <td style={{
-                          border: '1px solid #ddd',
-                          padding: '8px',
-                          fontWeight: 'normal', // Set font weight to normal
-                          ...getCompleteCellStyle(item.option1)
-                        }}>
-                          {item.option1.toUpperCase()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
-                  No specific methodological features listed for this question to display in the table.
-                </p>
-              )}
+                          }}>
+                            BASE
+                          </td>
+                          {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
+                          <td style={{
+                            border: '1px solid #ddd',
+                            padding: '8px',
+                            fontWeight: 'normal', // Set font weight to normal
+                            ...getCompleteCellStyle(item.option1)
+                          }}>
+                            {item.option1.toUpperCase()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
+                    No specific methodological features listed for this question to display in the table.
+                  </p>
+                )}
               </div>
 
-              {/* GO BACK Button Container - centered and spaced below content */}
-              <div style={{ marginTop: '15px', /* Halved from 30px */ textAlign: 'center' }}>
+              {/* START OVER Button Container - centered and spaced below content */}
+              <div style={{ marginTop: '15px', textAlign: 'center' }}>
                 <button
                   onClick={handleGoBackClick}
                   className="button"
