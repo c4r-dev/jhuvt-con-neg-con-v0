@@ -7,27 +7,45 @@
     "methodologicalConsiderations": [
       {
         "feature": "Sterilization protocol",
-        "description": "Each step of the sterilization protocol could introduce factors that may impact neuronal development, such as cross-contamination or the introduction of an unknown growth factor."
+        "description": "Each step of the sterilization protocol could introduce factors that may impact neuronal development, such as cross-contamination or the introduction of an unknown growth factor.",
+        "option1": "Absent",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Incubation procedure",
-        "description": "Minor procedural details like the temperature uniformity in the incubator could impact neuronal development."
+        "description": "Minor procedural details like the temperature uniformity in the incubator could impact neuronal development.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Neuroserpin Processing",
-        "description": "Depending on how the neuroserpin was processed & purified, there may be recombinant protein artefacts that could have an effect on neuronal development."
+        "description": "Depending on how the neuroserpin was processed & purified, there may be recombinant protein artefacts that could have an effect on neuronal development.",
+        "option1": "Absent",
+        "option2": "Absent",
+        "option3": "Different"
       },
       {
         "feature": "Neuron selection",
-        "description": "Your cultures will feature many cells, not all of which will be viable for analysis, and it may not be feasible to measure the length of every single axon. Could the way you handle this impact your results?"
+        "description": "Your cultures will feature many cells, not all of which will be viable for analysis, and it may not be feasible to measure the length of every single axon. Could the way you handle this impact your results?",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Evaluation Timing",
-        "description": "Your cells might well grow more mature the more time they are afforded, and they may even grow at variable rates. If cell growth depends on cultivation period, how would you manage the timing of the evaluation step(s)?"
+        "description": "Your cells might well grow more mature the more time they are afforded, and they may even grow at variable rates. If cell growth depends on cultivation period, how would you manage the timing of the evaluation step(s)?",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Dosage Regiment",
-        "description": "The dose of neuroserpin to which cultures are exposed."
+        "description": "The dose of neuroserpin to which cultures are exposed.",
+        "option1": "Absent",
+        "option2": "Absent",
+        "option3": "Match"
       }
     ]
   },
@@ -39,27 +57,45 @@
     "methodologicalConsiderations": [
       {
         "feature": "Rhythmicity",
-        "description": "Whether the sensory stimulation is rhythmic in nature, and if so, what that rhythm is."
+        "description": "Whether the sensory stimulation is rhythmic in nature, and if so, what that rhythm is.",
+         "option1": "Absent",
+        "option2": "Match",
+        "option3": "Absent"
       },
       {
         "feature": "Intensity",
-        "description": "The intensity of the stimulation."
+        "description": "The intensity of the stimulation.",
+        "option1": "Different",
+        "option2": "Match",
+        "option3": "Absent"
       },
       {
         "feature": "Stimulation Environment",
-        "description": "Since patients are self-administering the sensory stimulation, they may end up doing so in different environments."
+        "description": "Since patients are self-administering the sensory stimulation, they may end up doing so in different environments.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Stimulation Schedule",
-        "description": "When and how often patients are instructed to self-administer the stimulation."
+        "description": "When and how often patients are instructed to self-administer the stimulation.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Treatment expectation",
-        "description": "The study-related information that is available to patients."
+        "description": "The study-related information that is available to patients.",
+        "option1": "Match",
+        "option2": "Different",
+        "option3": "Match"
       },
       {
         "feature": "Report Paradigm",
-        "description": "The procedure describing when and what patients should report in their treatment log."
+        "description": "The procedure describing when and what patients should report in their treatment log.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       }
     ]
   },
@@ -71,31 +107,52 @@
     "methodologicalConsiderations": [
       {
         "feature": "Feeding protocol",
-        "description": "The time and frequency with which rodents are fed."
+        "description": "The time and frequency with which rodents are fed.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Experimenter",
-        "description": "Who is collecting a given measurement? Rodents that are particularly scared of or comfortable with a given experimenter may perform differently."
+        "description": "Who is collecting a given measurement? Rodents that are particularly scared of or comfortable with a given experimenter may perform differently.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Testing schedule",
-        "description": "When and how often rotarod tests are performed could well impact the results you see."
+        "description": "When and how often rotarod tests are performed could well impact the results you see.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       },
       {
         "feature": "Nutritional Content",
-        "description": "Nutritional properties of the food rodent are fed, such as antioxidants or caloric content."
+        "description": "Nutritional properties of the food rodent are fed, such as antioxidants or caloric content.",
+        "option1": "Different",
+        "option2": "Different",
+        "option3": "Match"
       },
       {
         "feature": "Food Preferences",
-        "description": "The taste, look, and texture of the food rodents are fed, such as sweetness, color, or surface tension."
+        "description": "The taste, look, and texture of the food rodents are fed, such as sweetness, color, or surface tension.",
+        "option1": "Different",
+        "option2": "Different",
+        "option3": "Match"
       },
       {
         "feature": "Food Processing",
-        "description": "The food rodents will be eating could be processed in various ways that could impact results, such as refrigeration (affecting temperature) or pulverization (affecting texture)."
+        "description": "The food rodents will be eating could be processed in various ways that could impact results, such as refrigeration (affecting temperature) or pulverization (affecting texture).",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Different"
       },
       {
         "feature": "Testing Parameters",
-        "description": "The number and frequency of rotarod runs to which rodents are subjected."
+        "description": "The number and frequency of rotarod runs to which rodents are subjected.",
+        "option1": "Match",
+        "option2": "Match",
+        "option3": "Match"
       }
     ]
   }

@@ -7,6 +7,9 @@ import React, { useState, useEffect } from 'react';
 interface MethodologicalConsideration {
   feature: string;
   description: string;
+  option1: string; // Added new key
+  option2: string; // Added new key
+  option3: string; // Added new key
 }
 
 interface Question {
@@ -68,6 +71,21 @@ export default function Home() {
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
+  // Function to determine cell style based on value for the "COMPLETE" column
+  const getCompleteCellStyle = (value: string): React.CSSProperties => {
+    switch (value) {
+      case 'Absent':
+        return { backgroundColor: 'black', color: 'white' };
+      case 'Different':
+        return { backgroundColor: 'orange', color: 'white' };
+      case 'Match':
+        return { backgroundColor: '#6F00FF', color: 'white' }; // Use the specific purple color
+      default:
+        return { backgroundColor: 'transparent', color: 'inherit' }; // Default style
+    }
+  };
+
+
   // Base style for buttons (padding, border, etc.)
   const newBaseButtonStyle: React.CSSProperties = {
     padding: '10px 15px',
@@ -102,7 +120,7 @@ export default function Home() {
     border: '1px solid #eee',
     padding: '15px',
     borderRadius: '4px',
-    backgroundColor: '#fdfdfd',
+    backgroundColor: '#fdfdfd', // Match other boxes
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
     // marginTop managed individually below
   };
@@ -211,11 +229,66 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Box 2: Placeholder for Interactive Table */}
-              <div style={{ ...staticBoxStyle, marginTop: '10px', /* Halved from 20px */ backgroundColor: '#fffcf0' }}>
-                <p style={{ fontStyle: 'italic', color: 'orange', textAlign: 'center', margin: 0, fontWeight: 'bold' }}>
-                  Dave go here - Box for interactive table.
+              {/* Box 2: Interactive Table */}
+              <div style={{ ...staticBoxStyle, marginTop: '10px' }}> {/* Applied staticBoxStyle and removed specific background */}
+              {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                  <thead>
+                    <tr>
+                      {/* Styled Header for Methodological Feature with white border */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>METHODOLOGICAL FEATURE</th>
+                      {/* Styled Header for Intervention with white border */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>INTERVENTION</th>
+                      {/* Styled Header for Complete with white border */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>COMPLETE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedQuestion.methodologicalConsiderations.map((item, index) => (
+                      <tr key={index}>
+                        {/* Styled Cell for Methodological Feature - Capitalized text */}
+                        <td
+                          key={index}
+                          title={item.description}
+                          style={{
+                            border: '1px solid #ddd',
+                            padding: '8px',
+                            cursor: 'help',
+                            backgroundColor: 'black', // Background color for first column
+                            color: 'white', // Text color for first column
+                            fontWeight: 'normal' // Set font weight to normal
+                          }}
+                        >
+                          {item.feature.toUpperCase()} {/* Capitalize the feature text */}
+                        </td>
+                        {/* Styled Cell for Intervention */}
+                        <td style={{
+                          border: '1px solid #ddd',
+                          padding: '8px',
+                          backgroundColor: 'grey', // Background color for second column
+                          color: 'white', // Text color for second column
+                          fontWeight: 'normal' // Set font weight to normal
+                        }}>
+                          BASE
+                        </td>
+                        {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
+                        <td style={{
+                          border: '1px solid #ddd',
+                          padding: '8px',
+                          fontWeight: 'normal', // Set font weight to normal
+                          ...getCompleteCellStyle(item.option1)
+                        }}>
+                          {item.option1.toUpperCase()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
+                  No specific methodological features listed for this question to display in the table.
                 </p>
+              )}
               </div>
 
               {/* GO BACK Button Container - centered and spaced below content */}
@@ -228,7 +301,7 @@ export default function Home() {
                     marginBottom: '0'
                   }}
                 >
-                  GO BACK
+                  START OVER {/* Changed button text */}
                 </button>
               </div>
             </>
