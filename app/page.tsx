@@ -26,6 +26,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
   const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
+  const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track new columns
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -67,6 +68,11 @@ export default function Home() {
     console.log('Go Back clicked. Resetting selection.');
     setSelectionLocked(false);
     setSelectedQuestionId(null);
+    setNewControlColumns(0); // Reset new columns when going back
+  };
+
+  const handleAddControlColumn = () => {
+    setNewControlColumns(prevCount => prevCount + 1);
   };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -200,123 +206,126 @@ export default function Home() {
             </div>
           </div>
 
-          {/* === CONDITIONAL BUTTON DISPLAY === */}
-
-          {/* Initial NEXT button - centered and spaced below content */}
-          {!selectionLocked && selectedQuestionId && (
-            <div style={{ marginTop: '8px', textAlign: 'center' }}> {/* Further Reduced marginTop */}
-              <button
-                onClick={handleLockSelectionClick}
-                className="button"
-                style={{
-                  ...newBaseButtonStyle,
-                  marginBottom: '0'
-                }}
-              >
-                NEXT
-              </button>
-            </div>
-          )}
-
-          {/* UI shown only AFTER selection is locked */}
+          {/* === CONDITIONAL UI DISPLAY (after selection is locked) === */}
           {selectionLocked && (
             <>
               {/* Combined Box for Instructions and Table */}
-              {/* Applied staticBoxStyle and contains both instruction blocks and the table */}
               <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
                 {/* First Instruction Block */}
-                <div style={{ marginBottom: '20px' }}> {/* Added bottom margin for spacing */}
+                <div style={{ marginBottom: '20px' }}>
                   <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
-                  <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}> {/* Increased font size */}
+                  <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
                     This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
                   </p>
                 </div>
 
                 {/* Second Instruction Block - Styled as instruction, larger text */}
-                <div style={{ marginBottom: '15px', color: '#333' }}> {/* Removed redundant fontSize, keeping other styles */}
-                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, design new controls with potential confounds in mind.</h5> {/* Increased font size */}
-                  <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}> {/* Increased font size, adjusted margin and color for consistency */}
+                <div style={{ marginBottom: '15px', color: '#333' }}>
+                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, design new controls with potential confounds in mind.</h5>
+                  <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}>
                     The interactive table below will update to allow you to consider how different components are handled across treatments.
                   </p>
                 </div>
 
-                {/* Interactive Table */}
-                {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-                    <thead>
-                      <tr>
-                        {/* Styled Header for Methodological Feature with white border */}
-                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>METHODOLOGICAL FEATURE</th>
-                        {/* Styled Header for Intervention with white border */}
-                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>INTERVENTION</th>
-                        {/* Styled Header for Complete with white border */}
-                        <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>COMPLETE</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedQuestion.methodologicalConsiderations.map((item, index) => (
-                        <tr key={index}>
-                          {/* Styled Cell for Methodological Feature - Capitalized text */}
-                          <td
-                            key={index}
-                            title={item.description}
-                            style={{
+                {/* Interactive Table - Wrapped for horizontal scrolling */}
+                <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling */}
+                  {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}> {/* Added minWidth to demonstrate scrolling */}
+                      <thead>
+                        <tr>
+                          {/* Styled Header for Methodological Feature with white border */}
+                          <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>METHODOLOGICAL FEATURE</th>
+                          {/* Styled Header for Intervention with white border */}
+                          <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>INTERVENTION</th>
+                          {/* Styled Header for Complete with white border */}
+                          <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>COMPLETE</th>
+                          {/* Dynamically added New Control Headers */}
+                          {[...Array(newControlColumns)].map((_, index) => (
+                              <th key={`new-header-${index}`} style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal' }}>
+                                  NEW CONTROL {index + 1}
+                              </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedQuestion.methodologicalConsiderations.map((item, index) => (
+                          <tr key={index}>
+                            {/* Styled Cell for Methodological Feature - Capitalized text */}
+                            <td
+                              key={index}
+                              title={item.description}
+                              style={{
+                                border: '1px solid #ddd',
+                                padding: '8px',
+                                cursor: 'help',
+                                backgroundColor: 'black', // Background color for first column
+                                color: 'white', // Text color for first column
+                                fontWeight: 'normal' // Set font weight to normal
+                              }}
+                            >
+                              {item.feature.toUpperCase()} {/* Capitalize the feature text */}
+                            </td>
+                            {/* Styled Cell for Intervention */}
+                            <td style={{
                               border: '1px solid #ddd',
                               padding: '8px',
-                              cursor: 'help',
-                              backgroundColor: 'black', // Background color for first column
-                              color: 'white', // Text color for first column
+                              backgroundColor: 'grey', // Background color for second column
+                              color: 'white', // Text color for second column
                               fontWeight: 'normal' // Set font weight to normal
-                            }}
-                          >
-                            {item.feature.toUpperCase()} {/* Capitalize the feature text */}
-                          </td>
-                          {/* Styled Cell for Intervention */}
-                          <td style={{
-                            border: '1px solid #ddd',
-                            padding: '8px',
-                            backgroundColor: 'grey', // Background color for second column
-                            color: 'white', // Text color for second column
-                            fontWeight: 'normal' // Set font weight to normal
-                          }}>
-                            BASE
-                          </td>
-                          {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
-                          <td style={{
-                            border: '1px solid #ddd',
-                            padding: '8px',
-                            fontWeight: 'normal', // Set font weight to normal
-                            ...getCompleteCellStyle(item.option1)
-                          }}>
-                            {item.option1.toUpperCase()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
-                    No specific methodological features listed for this question to display in the table.
-                  </p>
-                )}
-              </div>
+                            }}>
+                              BASE
+                            </td>
+                            {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
+                            <td style={{
+                              border: '1px solid #ddd',
+                              padding: '8px',
+                              fontWeight: 'normal', // Set font weight to normal
+                              ...getCompleteCellStyle(item.option1)
+                            }}>
+                              {item.option1.toUpperCase()}
+                            </td>
+                            {/* Dynamically added New Control Cells */}
+                            {[...Array(newControlColumns)].map((_, colIndex) => (
+                                <td key={`new-cell-${index}-${colIndex}`} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal' }}>
+                                    {/* Placeholder or input for user input */}
+                                    Define...
+                                </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
+                      No specific methodological features listed for this question to display in the table.
+                    </p>
+                  )}
+                </div>
 
-              {/* START OVER Button Container - centered and spaced below content */}
-              <div style={{ marginTop: '15px', textAlign: 'center' }}>
-                <button
-                  onClick={handleGoBackClick}
-                  className="button"
-                  style={{
-                    ...newBaseButtonStyle,
-                    marginBottom: '0'
-                  }}
-                >
-                  START OVER {/* Changed button text */}
-                </button>
+                 {/* Button Container - Moved below the table, centered, flex for internal layout */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}> {/* Centered using justifyContent */}
+                    {/* START OVER Button - Placed first for left position */}
+                    <button
+                      onClick={handleGoBackClick}
+                      className="button" // Apply standard button class
+                      style={{...newBaseButtonStyle, marginRight: '10px'}} // Apply base button styles, add some space to the right
+                    >
+                      START OVER
+                    </button>
+                    {/* ADD NEW CONTROL Button - Placed second for right position */}
+                    <button
+                        onClick={handleAddControlColumn}
+                        className="button" // Apply standard button class
+                        style={newBaseButtonStyle} // Apply base button styles
+                    >
+                        ADD NEW CONTROL
+                    </button>
+                </div>
+
               </div>
             </>
           )}
-          {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
+          {/* === END OF CONDITIONAL UI DISPLAY === */}
 
         </div>
       )}
