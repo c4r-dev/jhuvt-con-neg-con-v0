@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 
 // Interface for the question structure
 interface MethodologicalConsideration {
@@ -29,6 +29,9 @@ export default function Home() {
   const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track number of new columns
   const [newControlSelections, setNewControlSelections] = useState<string[][]>([]); // State to track selections in new columns
 
+  // Create a ref for the table's scrollable container
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -54,6 +57,11 @@ export default function Home() {
 
   const handleQuestionSelection = (id: number) => {
     setSelectedQuestionId(id);
+    // Scroll to the bottom after selecting a question
+    // Use a small timeout to allow the DOM to update before scrolling
+    setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+    }, 50); // Adjust timeout if needed
   };
 
   const handleLockSelectionClick = () => {
@@ -87,6 +95,15 @@ export default function Home() {
         const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => 'ABSENT') || [];
         return [...prevSelections, newColumn];
     });
+
+    // Scroll the table wrapper to the right AND the page to the bottom after adding a column
+    // Use setTimeout to allow DOM to update and column/page height to be rendered
+    setTimeout(() => {
+      if (tableWrapperRef.current) {
+        tableWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollWidth;
+      }
+      window.scrollTo(0, document.body.scrollHeight); // Scroll page to the bottom
+    }, 50); // Small delay, adjust if necessary
   };
 
   // Function to handle deleting a new control column (removes the last one added with current state)
@@ -175,7 +192,8 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '40px auto 20px auto' }}>
+    // Reduced top margin for less whitespace before the first heading
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '20px auto 20px auto' }}>
       {/* Question Selection UI (hidden when locked) */}
       {!selectionLocked && (
         <>
@@ -209,9 +227,9 @@ export default function Home() {
         </>
       )}
 
-      {/* Selected Question Details UI */}
+      {/* Selected Question Details UI - Reduced top margin */}
       {selectedQuestion && (
-        <div style={{ marginTop: selectionLocked ? '0' : '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
 
           {/* Standard Details */}
@@ -290,17 +308,24 @@ export default function Home() {
 
 
                 {/* Interactive Table - Wrapped for horizontal scrolling, with sticky columns */}
-                <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling */}
+                <div style={{ overflowX: 'auto' }} ref={tableWrapperRef}> {/* Assign ref here */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky */}
+                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>{/* Styled Header for Intervention - Sticky */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
+                      }}>METHODOLOGICAL FEATURE</th>
+                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
-                      }}>INTERVENTION</th>{/* Styled Header for Complete */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>{/* Dynamically added New Control Headers with delete icon */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                      }}>INTERVENTION</th>
+                      {/* Styled Header for Complete - Keep existing style */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
+                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
                       {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
                       }}>NEW CONTROL
