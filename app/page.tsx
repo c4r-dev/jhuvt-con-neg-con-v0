@@ -61,16 +61,23 @@ export default function Home() {
       alert("Please select a question before proceeding.");
       return;
     }
-    // console.log('Selection locked. Question list and initial NEXT button hidden.');
+    console.log('Selection locked. Question list and initial NEXT button hidden.');
     setSelectionLocked(true);
+    // Scroll to the bottom after setting selectionLocked to true
+    // Use a small timeout to allow the DOM to update before scrolling
+    setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+    }, 100); // Adjust timeout if needed
   };
 
   const handleGoBackClick = () => {
-    // console.log('Go Back clicked. Resetting selection.');
+    console.log('Go Back clicked. Resetting selection.');
     setSelectionLocked(false);
     setSelectedQuestionId(null);
     setNewControlColumns(0); // Reset new columns count
     setNewControlSelections([]); // Reset new columns selections
+     // Optionally scroll to top when going back
+     window.scrollTo(0, 0);
   };
 
   const handleAddControlColumn = () => {
@@ -286,22 +293,15 @@ export default function Home() {
                 <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
+                      {/* Styled Header for Methodological Feature - Sticky */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
+                      }}>METHODOLOGICAL FEATURE</th>{/* Styled Header for Intervention - Sticky */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
-                      }}>INTERVENTION</th>
-                      {/* Styled Header for Complete - Keep existing style */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
-                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
-                      {[...Array(newControlColumns)].map((_, index) => (<th key={`new-header-${index}`} style={{
+                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                      }}>INTERVENTION</th>{/* Styled Header for Complete */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>{/* Dynamically added New Control Headers with delete icon */}
+                      {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
                       }}>NEW CONTROL
                           <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
