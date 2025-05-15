@@ -90,9 +90,9 @@ export default function Home() {
 
   const handleAddControlColumn = () => {
     setNewControlColumns(prevCount => prevCount + 1);
-    // Initialize selections for the new column with a default value for each row
+    // Initialize selections for the new column with an empty string for each row (for placeholder)
     setNewControlSelections(prevSelections => {
-        const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => 'ABSENT') || [];
+        const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => '') || []; // Initial value is ''
         return [...prevSelections, newColumn];
     });
 
@@ -143,6 +143,8 @@ export default function Home() {
         return { backgroundColor: 'orange', color: 'white' };
       case 'MATCH': // Updated to handle uppercase
         return { backgroundColor: '#6F00FF', color: 'white' }; // Use the specific purple color
+      case '': // Handle the empty string case for the placeholder
+        return { backgroundColor: 'transparent', color: 'inherit' }; // No special styling for placeholder
       default:
         return { backgroundColor: 'transparent', color: 'inherit' }; // Default style
     }
@@ -340,7 +342,9 @@ export default function Home() {
                       }}>{item.option1.toUpperCase()}</td>{/* Dynamically added New Control Cells with dropdowns and styling */}
                       {[...Array(newControlColumns)].map((_, colIndex) => (<td key={`new-cell-${rowIndex}-${colIndex}`} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}>
                           <select
-                              value={newControlSelections[colIndex]?.[rowIndex] || 'ABSENT'} // Get value from state, default to ABSENT
+                              name={`control_${colIndex}_${rowIndex}`} // Added name attribute
+                              id={`control_${colIndex}_${rowIndex}`} // Added id attribute
+                              value={newControlSelections[colIndex]?.[rowIndex] || ''} // Get value from state, default to '' for placeholder
                               onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
                               style={{
                                 width: '100%',
@@ -349,9 +353,10 @@ export default function Home() {
                                 border: '1px solid #ccc',
                                 fontSize: '1rem',
                                 fontFamily: 'inherit',
-                                ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex] || 'ABSENT') // Apply dynamic style
+                                ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex] || '') // Apply dynamic style
                               }} // Basic styling, inherit font, apply dynamic style
                           >
+                            <option value="" disabled>Define</option> {/* Placeholder option - Removed 'selected' */}
                             <option value="ABSENT">ABSENT</option>
                             <option value="DIFFERENT">DIFFERENT</option>
                             <option value="MATCH">MATCH</option>
