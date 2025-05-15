@@ -26,7 +26,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
   const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
-  const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track new columns
+  const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track number of new columns
+  const [newControlSelections, setNewControlSelections] = useState<string[][]>([]); // State to track selections in new columns
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -68,29 +69,55 @@ export default function Home() {
     console.log('Go Back clicked. Resetting selection.');
     setSelectionLocked(false);
     setSelectedQuestionId(null);
-    setNewControlColumns(0); // Reset new columns when going back
+    setNewControlColumns(0); // Reset new columns count
+    setNewControlSelections([]); // Reset new columns selections
   };
 
   const handleAddControlColumn = () => {
     setNewControlColumns(prevCount => prevCount + 1);
+    // Initialize selections for the new column with a default value for each row
+    setNewControlSelections(prevSelections => {
+        const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => 'ABSENT') || [];
+        return [...prevSelections, newColumn];
+    });
   };
 
   // Function to handle deleting a new control column (removes the last one added with current state)
   const handleDeleteControlColumn = () => {
       setNewControlColumns(prevCount => Math.max(0, prevCount - 1)); // Decrease count, but not below 0
+      // Remove the last column's selections
+      setNewControlSelections(prevSelections => {
+          const updatedSelections = [...prevSelections];
+          updatedSelections.pop(); // Remove the last array
+          return updatedSelections;
+      });
+  };
+
+  // Function to handle changes in the new control column dropdowns
+  const handleNewControlChange = (colIndex: number, rowIndex: number, value: string) => {
+      setNewControlSelections(prevSelections => {
+          const updatedSelections = prevSelections.map((column, cIdx) => {
+              if (cIdx === colIndex) {
+                  // Update the value in the specific row of this column
+                  return column.map((cellValue, rIdx) => (rIdx === rowIndex ? value : cellValue));
+              }
+              return column; // Return other columns unchanged
+          });
+          return updatedSelections;
+      });
   };
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
-  // Function to determine cell style based on value for the "COMPLETE" column
+  // Function to determine cell style based on value for the "COMPLETE" column and dropdowns
   const getCompleteCellStyle = (value: string): React.CSSProperties => {
     switch (value) {
-      case 'Absent':
+      case 'ABSENT': // Updated to handle uppercase
         return { backgroundColor: 'black', color: 'white' };
-      case 'Different':
+      case 'DIFFERENT': // Updated to handle uppercase
         return { backgroundColor: 'orange', color: 'white' };
-      case 'Match':
+      case 'MATCH': // Updated to handle uppercase
         return { backgroundColor: '#6F00FF', color: 'white' }; // Use the specific purple color
       default:
         return { backgroundColor: 'transparent', color: 'inherit' }; // Default style
@@ -236,7 +263,7 @@ export default function Home() {
           {/* UI shown only AFTER selection is locked */}
           {selectionLocked && (
             <>
-              {/* Combined Box for Instructions, ADD NEW CONTROL button, and Table */}
+              {/* Combined Box for Instructions and Table */}
               <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
                 {/* First Instruction Block */}
                 <div style={{ marginBottom: '20px' }}>
@@ -259,14 +286,21 @@ export default function Home() {
                 <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky */}
+                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>{/* Styled Header for Intervention - Sticky */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
+                      }}>METHODOLOGICAL FEATURE</th>
+                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
-                      }}>INTERVENTION</th>{/* Styled Header for Complete */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>{/* Dynamically added New Control Headers */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                      }}>INTERVENTION</th>
+                      {/* Styled Header for Complete - Keep existing style */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
+                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
                       {[...Array(newControlColumns)].map((_, index) => (<th key={`new-header-${index}`} style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
                       }}>NEW CONTROL
@@ -274,7 +308,7 @@ export default function Home() {
                               <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
                           </span>
                       </th>))}
-                    </tr></thead><tbody>{selectedQuestion.methodologicalConsiderations.map((item, index) => (<tr key={index}><td // Removed redundant key={index} in a previous step
+                    </tr></thead><tbody>{selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (<tr key={rowIndex}><td // Using rowIndex for key
                         title={item.description}
                         style={{
                           border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
@@ -285,8 +319,26 @@ export default function Home() {
                       }}>BASE</td>{/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
                       <td style={{
                         border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
-                      }}>{item.option1.toUpperCase()}</td>{/* Dynamically added New Control Cells */}
-                      {[...Array(newControlColumns)].map((_, colIndex) => (<td key={`new-cell-${index}-${colIndex}`} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}>Define...</td>))}
+                      }}>{item.option1.toUpperCase()}</td>{/* Dynamically added New Control Cells with dropdowns and styling */}
+                      {[...Array(newControlColumns)].map((_, colIndex) => (<td key={`new-cell-${rowIndex}-${colIndex}`} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}>
+                          <select
+                              value={newControlSelections[colIndex]?.[rowIndex] || 'ABSENT'} // Get value from state, default to ABSENT
+                              onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                border: '1px solid #ccc',
+                                fontSize: '1rem',
+                                fontFamily: 'inherit',
+                                ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex] || 'ABSENT') // Apply dynamic style
+                              }} // Basic styling, inherit font, apply dynamic style
+                          >
+                            <option value="ABSENT">ABSENT</option>
+                            <option value="DIFFERENT">DIFFERENT</option>
+                            <option value="MATCH">MATCH</option>
+                          </select>
+                      </td>))}
                     </tr>))}
                     </tbody></table>
                   ) : (
@@ -296,8 +348,7 @@ export default function Home() {
                   )}
                 </div>
 
-                 {/* Button Container - Moved inside the box, below the table, centered with flex */}
-                 {/* Contains both START OVER and ADD NEW CONTROL buttons */}
+                 {/* Button Container - Inside the box, below the table, centered with flex */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
                     {/* START OVER Button - Placed first for left position */}
                     <button
@@ -318,8 +369,6 @@ export default function Home() {
                 </div>
 
               </div>
-
-              {/* The original GO BACK button div is removed */}
             </>
           )}
           {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
