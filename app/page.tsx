@@ -313,14 +313,21 @@ export default function Home() {
                 <div style={{ overflowX: 'auto' }} ref={tableWrapperRef}> {/* Assign ref here */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky */}
+                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>{/* Styled Header for Intervention - Sticky */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
+                      }}>METHODOLOGICAL FEATURE</th>
+                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
-                      }}>INTERVENTION</th>{/* Styled Header for Complete */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>{/* Dynamically added New Control Headers with delete icon */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left',
+                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
+                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                      }}>INTERVENTION</th>
+                      {/* Styled Header for Complete - Keep existing style */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
+                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
                       {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
                       }}>NEW CONTROL
@@ -356,7 +363,7 @@ export default function Home() {
                                 ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex] || '') // Apply dynamic style
                               }} // Basic styling, inherit font, apply dynamic style
                           >
-                            <option value="" disabled>Define</option> {/* Placeholder option - Removed 'selected' */}
+                            <option value="" disabled>Define</option> {/* Placeholder option */}
                             <option value="ABSENT">ABSENT</option>
                             <option value="DIFFERENT">DIFFERENT</option>
                             <option value="MATCH">MATCH</option>
