@@ -61,12 +61,12 @@ export default function Home() {
       alert("Please select a question before proceeding.");
       return;
     }
-    console.log('Selection locked. Question list and initial NEXT button hidden.');
+    // console.log('Selection locked. Question list and initial NEXT button hidden.');
     setSelectionLocked(true);
   };
 
   const handleGoBackClick = () => {
-    console.log('Go Back clicked. Resetting selection.');
+    // console.log('Go Back clicked. Resetting selection.');
     setSelectionLocked(false);
     setSelectedQuestionId(null);
     setNewControlColumns(0); // Reset new columns count
