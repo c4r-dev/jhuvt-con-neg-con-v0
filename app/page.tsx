@@ -69,7 +69,7 @@ export default function Home() {
       alert("Please select a question before proceeding.");
       return;
     }
-    console.log('Selection locked. Question list and initial NEXT button hidden.');
+    // console.log('Selection locked. Question list and initial NEXT button hidden.'); // Commented out
     setSelectionLocked(true);
     // Scroll to the bottom after setting selectionLocked to true
     // Use a small timeout to allow the DOM to update before scrolling
@@ -79,7 +79,7 @@ export default function Home() {
   };
 
   const handleGoBackClick = () => {
-    console.log('Go Back clicked. Resetting selection.');
+    // console.log('Go Back clicked. Resetting selection.'); // Commented out
     setSelectionLocked(false);
     setSelectedQuestionId(null);
     setNewControlColumns(0); // Reset new columns count
@@ -311,21 +311,14 @@ export default function Home() {
                 <div style={{ overflowX: 'auto' }} ref={tableWrapperRef}> {/* Assign ref here */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
+                      {/* Styled Header for Methodological Feature - Sticky */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
+                      }}>METHODOLOGICAL FEATURE</th>{/* Styled Header for Intervention - Sticky */}
                       <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
-                      }}>INTERVENTION</th>
-                      {/* Styled Header for Complete - Keep existing style */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
-                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
+                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                      }}>INTERVENTION</th>{/* Styled Header for Complete */}
+                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>{/* Dynamically added New Control Headers with delete icon */}
                       {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
                       }}>NEW CONTROL
