@@ -10,6 +10,7 @@ interface MethodologicalConsideration {
   option1: string; // Added new key
   option2: string; // Added new key
   option3: string; // Added new key
+  absent: string; // Added new key for the 'absent' property
 }
 
 interface Question {
