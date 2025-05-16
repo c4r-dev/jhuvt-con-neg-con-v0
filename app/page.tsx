@@ -124,13 +124,14 @@ export default function Home() {
       }
   };
 
-  // Function to handle deleting a new control column (removes the last one added with current state)
-  const handleDeleteControlColumn = () => {
-      setNewControlColumns(prevCount => Math.max(0, prevCount - 1)); // Decrease count, but not below 0
-      // Remove the last column's selections
+  // Function to handle deleting a new control column by index
+  const handleDeleteControlColumn = (colIndexToDelete: number) => {
+      // Decrease column count
+      setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
+
+      // Remove the column at the specified index from selections
       setNewControlSelections(prevSelections => {
-          const updatedSelections = [...prevSelections];
-          updatedSelections.pop(); // Remove the last array
+          const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
           return updatedSelections;
       });
   };
@@ -200,7 +201,7 @@ export default function Home() {
 
   // Function to handle canceling the modal
   const handleModalCancel = () => {
-      // Revert the dropdown value to its previous state and close modal
+      // Revert the dropdown value to its previous state and clear description
       if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
            setNewControlSelections(prevSelections => {
                 const updatedSelections = prevSelections.map((column, cIdx) => {
@@ -225,6 +226,38 @@ export default function Home() {
       setModalDescription('');
       setPreviousValue(''); // Clear previous value
   };
+
+  // Function to check if all required descriptions for DIFFERENT are filled AND all cells have a selection
+  const areAllNewControlsValid = (): boolean => {
+      if (newControlColumns === 0) {
+          return false; // No new columns to validate, so cannot submit
+      }
+
+      // Iterate through each column
+      for (const column of newControlSelections) {
+          // Iterate through each row in the column
+          for (const cell of column) {
+              // Check if the cell has a selection (value is not the placeholder empty string)
+              if (cell.value === '') {
+                  return false; // Found a cell without a selection
+              }
+              // If the value is DIFFERENT and the description is empty after trimming
+              if (cell.value === 'DIFFERENT' && !cell.description.trim()) {
+                  return false; // Found a DIFFERENT cell with an empty description
+              }
+          }
+      }
+
+      return true; // All new controls are valid (all selected and descriptions provided for DIFFERENT)
+  };
+
+    // Function to handle the submission of data (placeholder)
+    const handleSubmit = () => {
+        // Here you would typically send the newControlSelections data to a server
+        console.log("Submitting New Control Data:", newControlSelections);
+        alert("New Control data submitted! (Check console for details)");
+        // You might want to add further logic here, like sending data via API
+    };
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -489,7 +522,7 @@ export default function Home() {
                           {/* Dynamically added New Control Headers with delete icon - Matches common header style */}
                           {[...Array(newControlColumns)].map((_, colIndex) => (
                             <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>NEW CONTROL
-                              <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
+                              <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn(colIndex)} title="Delete column"> {/* Pass colIndex here */}
                                   <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
                               </span>
                             </th>
@@ -581,6 +614,17 @@ export default function Home() {
                     >
                         ADD NEW CONTROL
                     </button>
+
+                    {/* SUBMIT Button - Conditionally rendered and styled */}
+                    {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && (
+                         <button
+                            onClick={handleSubmit}
+                            className="button" // Apply standard button class
+                             style={{...newBaseButtonStyle, marginLeft: '10px'}} // Apply base button styles, add space
+                         >
+                            SUBMIT
+                         </button>
+                    )}
                 </div>
 
                 {/* Message when max controls reached */}
@@ -589,6 +633,14 @@ export default function Home() {
                         Maximum number of NEW CONTROLS has been reached.
                     </p>
                 )}
+
+                {/* Message when validation fails but button isn't shown yet */}
+                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && (
+                    <p style={{ textAlign: 'center', color: 'orange', marginTop: '10px' }}>
+                         Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
+                     </p>
+                 )}
+
 
               </div>
             </>
