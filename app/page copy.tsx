@@ -10,6 +10,7 @@ interface MethodologicalConsideration {
   option1: string; // Added new key
   option2: string; // Added new key
   option3: string; // Added new key
+  absent: string; // Added new key for the 'absent' property
 }
 
 interface Question {
@@ -159,6 +160,17 @@ export default function Home() {
   // Estimated width for the first sticky column (adjust if needed)
   const firstColumnWidth = '200px';
 
+  // Define a common header style
+  const commonHeaderStyle: React.CSSProperties = {
+    border: '1px solid white',
+    padding: '8px',
+    textAlign: 'left',
+    backgroundColor: '#e0e0e0', // Match INTERVENTION header background
+    color: 'black', // Match INTERVENTION header text color
+    fontWeight: 'normal',
+    minWidth: '150px', // Match INTERVENTION header min-width
+  };
+
 
   // Base style for buttons (padding, border, etc.)
   const newBaseButtonStyle: React.CSSProperties = {
@@ -195,7 +207,7 @@ export default function Home() {
     padding: '15px',
     borderRadius: '4px',
     backgroundColor: '#fdfdfd', // Match other boxes
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.05)', // Corrected rgba syntax here
     // marginTop managed individually below
   };
 
@@ -318,31 +330,32 @@ export default function Home() {
                 {/* Interactive Table - Wrapped for horizontal scrolling, with sticky columns */}
                 <div style={{ overflowX: 'auto' }} ref={tableWrapperRef}> {/* Assign ref here */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
-                      <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention - NOW SCROLLABLE, matches COMPLETE header style */}
-                      <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', // Removed sticky position, left, and zIndex
-                          minWidth: '150px'
-                      }}>INTERVENTION</th>
-                      {/* Styled Header for Complete - Keep existing style */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
-                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
-                      {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
-                      }}>NEW CONTROL
-                          <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
-                              <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-                          </span>
-                      </th>))}
-                    </tr></thead><tbody>{selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (<tr key={rowIndex}><td // Using rowIndex for key
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+                      <thead>
+                        <tr>
+                          {/* Styled Header for Methodological Feature - Sticky, matches common header style */}
+                          <th style={{
+                              ...commonHeaderStyle,
+                              position: 'sticky',
+                              left: 0,
+                              zIndex: 10,
+                              minWidth: firstColumnWidth
+                          }}>METHODOLOGICAL FEATURE</th>
+                          {/* Styled Header for Intervention - Matches common header style */}
+                          <th style={commonHeaderStyle}>INTERVENTION</th>
+                          {/* Styled Header for Complete - Matches common header style */}
+                          <th style={commonHeaderStyle}>COMPLETE</th>
+                          {/* Dynamically added New Control Headers with delete icon - Matches common header style */}
+                          {[...Array(newControlColumns)].map((_, colIndex) => (
+                            <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>NEW CONTROL
+                              <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
+                                  <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                              </span>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>{selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (<tr key={rowIndex}><td // Using rowIndex for key
                         title={item.description}
                         style={{
                           border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
@@ -372,7 +385,7 @@ export default function Home() {
                               }} // Basic styling, inherit font, apply dynamic style
                           >
                             <option value="" disabled>Define</option> {/* Placeholder option */}
-                            <option value="ABSENT">ABSENT</option>
+                            {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>} {/* Conditionally render ABSENT option */}
                             <option value="DIFFERENT">DIFFERENT</option>
                             <option value="MATCH">MATCH</option>
                           </select>

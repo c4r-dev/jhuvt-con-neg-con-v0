@@ -21,6 +21,12 @@ interface Question {
   methodologicalConsiderations?: MethodologicalConsideration[];
 }
 
+// Interface for the new control selection including value and description
+interface ControlSelection {
+  value: string;
+  description: string;
+}
+
 // Define the maximum number of new control columns
 const MAX_NEW_CONTROLS = 6;
 
@@ -31,7 +37,14 @@ export default function Home() {
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
   const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
   const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track number of new columns
-  const [newControlSelections, setNewControlSelections] = useState<string[][]>([]); // State to track selections in new columns
+  // Updated state to store objects with value and description
+  const [newControlSelections, setNewControlSelections] = useState<ControlSelection[][]>([]);
+
+  // State for the modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCell, setEditingCell] = useState<{ colIndex: number | null; rowIndex: number | null }>({ colIndex: null, rowIndex: null });
+  const [modalDescription, setModalDescription] = useState('');
+  const [previousValue, setPreviousValue] = useState(''); // Store the value before selecting DIFFERENT
 
   // Create a ref for the table's scrollable container
   const tableWrapperRef = useRef<HTMLDivElement>(null);
@@ -73,7 +86,6 @@ export default function Home() {
       alert("Please select a question before proceeding.");
       return;
     }
-    // console.log('Selection locked. Question list and initial NEXT button hidden.'); // Commented out
     setSelectionLocked(true);
     // Scroll to the bottom after setting selectionLocked to true
     // Use a small timeout to allow the DOM to update before scrolling
@@ -83,7 +95,6 @@ export default function Home() {
   };
 
   const handleGoBackClick = () => {
-    // console.log('Go Back clicked. Resetting selection.'); // Commented out
     setSelectionLocked(false);
     setSelectedQuestionId(null);
     setNewControlColumns(0); // Reset new columns count
@@ -96,9 +107,9 @@ export default function Home() {
       // Only add if the limit has not been reached
       if (newControlColumns < MAX_NEW_CONTROLS) {
           setNewControlColumns(prevCount => prevCount + 1);
-          // Initialize selections for the new column with an empty string for each row (for placeholder)
+          // Initialize selections for the new column with an object { value: '', description: '' }
           setNewControlSelections(prevSelections => {
-              const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => '') || []; // Initial value is ''
+              const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
               return [...prevSelections, newColumn];
           });
 
@@ -126,16 +137,93 @@ export default function Home() {
 
   // Function to handle changes in the new control column dropdowns
   const handleNewControlChange = (colIndex: number, rowIndex: number, value: string) => {
-      setNewControlSelections(prevSelections => {
-          const updatedSelections = prevSelections.map((column, cIdx) => {
-              if (cIdx === colIndex) {
-                  // Update the value in the specific row of this column
-                  return column.map((cellValue, rIdx) => (rIdx === rowIndex ? value : cellValue));
-              }
-              return column; // Return other columns unchanged
+      const currentSelection = newControlSelections[colIndex]?.[rowIndex];
+      const prevValue = currentSelection?.value || '';
+      setPreviousValue(prevValue); // Store the previous value
+
+      if (value === 'DIFFERENT') {
+          // Open modal and store editing cell info
+          setIsModalOpen(true);
+          setEditingCell({ colIndex, rowIndex });
+          // Initialize modal description with existing description if any
+          setModalDescription(currentSelection?.description || '');
+      } else {
+          // For other values, update state directly and clear description
+          setNewControlSelections(prevSelections => {
+              const updatedSelections = prevSelections.map((column, cIdx) => {
+                  if (cIdx === colIndex) {
+                      return column.map((cellValue, rIdx) => {
+                          if (rIdx === rowIndex) {
+                              return { value: value, description: '' }; // Clear description for non-DIFFERENT
+                          }
+                          return cellValue;
+                      });
+                  }
+                  return column;
+              });
+              return updatedSelections;
           });
-          return updatedSelections;
-      });
+      }
+  };
+
+   // Function to handle saving the description from the modal
+  const handleModalSave = () => {
+    if (!modalDescription.trim()) {
+      alert("Description is required for 'DIFFERENT'.");
+      return;
+    }
+
+    // Update the state with the value 'DIFFERENT' and the provided description
+    if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
+        setNewControlSelections(prevSelections => {
+            const updatedSelections = prevSelections.map((column, cIdx) => {
+                if (cIdx === editingCell.colIndex) {
+                    return column.map((cellValue, rIdx) => {
+                        if (rIdx === editingCell.rowIndex) {
+                            return { value: 'DIFFERENT', description: modalDescription.trim() };
+                        }
+                        return cellValue;
+                    });
+                }
+                return column;
+            });
+            return updatedSelections;
+        });
+    }
+
+    // Close modal and reset modal state
+    setIsModalOpen(false);
+    setEditingCell({ colIndex: null, rowIndex: null });
+    setModalDescription('');
+    setPreviousValue(''); // Clear previous value
+  };
+
+  // Function to handle canceling the modal
+  const handleModalCancel = () => {
+      // Revert the dropdown value to its previous state and close modal
+      if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
+           setNewControlSelections(prevSelections => {
+                const updatedSelections = prevSelections.map((column, cIdx) => {
+                    if (cIdx === editingCell.colIndex) {
+                        return column.map((cellValue, rIdx) => {
+                            if (rIdx === editingCell.rowIndex) {
+                                // Revert to the previous value and clear description
+                                return { value: previousValue, description: '' };
+                            }
+                            return cellValue;
+                        });
+                    }
+                    return column;
+                });
+                return updatedSelections;
+            });
+      }
+
+      // Close modal and reset modal state
+      setIsModalOpen(false);
+      setEditingCell({ colIndex: null, rowIndex: null });
+      setModalDescription('');
+      setPreviousValue(''); // Clear previous value
   };
 
 
@@ -159,6 +247,17 @@ export default function Home() {
 
   // Estimated width for the first sticky column (adjust if needed)
   const firstColumnWidth = '200px';
+
+  // Define a common header style
+  const commonHeaderStyle: React.CSSProperties = {
+    border: '1px solid white',
+    padding: '8px',
+    textAlign: 'left',
+    backgroundColor: '#e0e0e0', // Match INTERVENTION header background
+    color: 'black', // Match INTERVENTION header text color
+    fontWeight: 'normal',
+    minWidth: '150px', // Match INTERVENTION header min-width
+  };
 
 
   // Base style for buttons (padding, border, etc.)
@@ -199,6 +298,59 @@ export default function Home() {
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
     // marginTop managed individually below
   };
+
+  // Styles for the modal
+  const modalOverlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000, // Ensure modal is on top
+  };
+
+  const modalContentStyle: React.CSSProperties = {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    maxWidth: '400px',
+    width: '90%',
+    textAlign: 'center',
+  };
+
+  const modalInputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px',
+    margin: '10px 0',
+    borderRadius: '4px',
+    border: `1px solid ${modalDescription.trim() === '' ? 'red' : '#ccc'}`, // Red border if empty
+    fontSize: '1rem',
+    fontFamily: 'inherit',
+    minHeight: '60px', // Give some height
+    resize: 'vertical', // Allow vertical resizing
+  };
+
+   const modalButtonContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'flex-end', // Align buttons to the right
+    gap: '10px', // Space between buttons
+    marginTop: '15px',
+  };
+
+  const modalButtonStyle: React.CSSProperties = {
+      padding: '8px 15px',
+      border: 'none',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      fontSize: '0.9rem',
+      fontWeight: 'bold',
+  };
+
 
   return (
     // Reduced top margin for less whitespace before the first heading
@@ -319,67 +471,90 @@ export default function Home() {
                 {/* Interactive Table - Wrapped for horizontal scrolling, with sticky columns */}
                 <div style={{ overflowX: 'auto' }} ref={tableWrapperRef}> {/* Assign ref here */}
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}><thead><tr>
-                      {/* Styled Header for Methodological Feature - Sticky, matches COMPLETE header style */}
-                      <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
-                      }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention - NOW SCROLLABLE, matches COMPLETE header style */}
-                      <th style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left',
-                          backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', // Removed sticky position, left, and zIndex
-                          minWidth: '150px'
-                      }}>INTERVENTION</th>
-                      {/* Styled Header for Complete - Keep existing style */}
-                      <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
-                      {/* Dynamically added New Control Headers with delete icon - Keep existing style */}
-                      {[...Array(newControlColumns)].map((_, colIndex) => (<th key={`new-header-${colIndex}`} style={{
-                          border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '150px',
-                      }}>NEW CONTROL
-                          <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
-                              <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-                          </span>
-                      </th>))}
-                    </tr></thead><tbody>{selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (<tr key={rowIndex}><td // Using rowIndex for key
-                        title={item.description}
-                        style={{
-                          border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
-                        }}
-                      >{item.feature.toUpperCase()}</td>{/* Styled Cell for Intervention - NOW SCROLLABLE */}
-                      <td style={{
-                        border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
-                        minWidth: '150px'
-                      }}>BASE</td>{/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
-                      <td style={{
-                        border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
-                      }}>{item.option1.toUpperCase()}</td>{/* Dynamically added New Control Cells with dropdowns and styling */}
-                      {[...Array(newControlColumns)].map((_, colIndex) => (<td key={`new-cell-${rowIndex}-${colIndex}`} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}>
-                          <select
-                              name={`control_${colIndex}_${rowIndex}`} // Added name attribute
-                              id={`control_${colIndex}_${rowIndex}`} // Added id attribute
-                              value={newControlSelections[colIndex]?.[rowIndex] || ''} // Get value from state, default to '' for placeholder
-                              onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+                      <thead>
+                        <tr>
+                          {/* Styled Header for Methodological Feature - Sticky, matches common header style */}
+                          <th style={{
+                              ...commonHeaderStyle,
+                              position: 'sticky',
+                              left: 0,
+                              zIndex: 10,
+                              minWidth: firstColumnWidth
+                          }}>METHODOLOGICAL FEATURE</th>
+                          {/* Styled Header for Intervention - Matches common header style */}
+                          <th style={commonHeaderStyle}>INTERVENTION</th>
+                          {/* Styled Header for Complete - Matches common header style */}
+                          <th style={commonHeaderStyle}>COMPLETE</th>
+                          {/* Dynamically added New Control Headers with delete icon - Matches common header style */}
+                          {[...Array(newControlColumns)].map((_, colIndex) => (
+                            <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>NEW CONTROL
+                              <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn()} title="Delete column">
+                                  <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                              </span>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (
+                          <tr key={rowIndex}>
+                            <td // Using rowIndex for key
+                              title={item.description}
                               style={{
-                                width: '100%',
-                                padding: '4px',
-                                borderRadius: '4px',
-                                border: '1px solid #ccc',
-                                fontSize: '1rem',
-                                fontFamily: 'inherit',
-                                ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex] || '') // Apply dynamic style
-                              }} // Basic styling, inherit font, apply dynamic style
-                          >
-                            <option value="" disabled>Define</option> {/* Placeholder option */}
-                            <option value="ABSENT">ABSENT</option>
-                            <option value="DIFFERENT">DIFFERENT</option>
-                            <option value="MATCH">MATCH</option>
-                          </select>
-                      </td>))}
-                    </tr>))}
-                    </tbody></table>
+                                border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
+                              }}
+                            >
+                              {item.feature.toUpperCase()}
+                            </td>
+                            {/* Styled Cell for Intervention - NOW SCROLLABLE */}
+                            <td style={{
+                              border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
+                              minWidth: '150px'
+                            }}>
+                              BASE
+                            </td>
+                            {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
+                            <td style={{
+                              border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
+                            }}>
+                              {item.option1.toUpperCase()}
+                            </td>
+                            {/* Dynamically added New Control Cells with dropdowns and styling */}
+                            {[...Array(newControlColumns)].map((_, colIndex) => (
+                              <td
+                                key={`new-cell-${rowIndex}-${colIndex}`}
+                                style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}
+                                // Display description on hover for DIFFERENT if it exists
+                                title={newControlSelections[colIndex]?.[rowIndex]?.value === 'DIFFERENT' && newControlSelections[colIndex]?.[rowIndex]?.description ? newControlSelections[colIndex]?.[rowIndex]?.description : ''}
+                              >
+                                <select
+                                  name={`control_${colIndex}_${rowIndex}`} // Added name attribute
+                                  id={`control_${colIndex}_${rowIndex}`} // Added id attribute
+                                  value={newControlSelections[colIndex]?.[rowIndex]?.value || ''} // Get value from state
+                                  onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '4px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ccc',
+                                    fontSize: '1rem',
+                                    fontFamily: 'inherit',
+                                    ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex]?.value || '') // Apply dynamic style based on value
+                                  }} // Basic styling, inherit font, apply dynamic style
+                                >
+                                  <option value="" disabled>Define</option> {/* Placeholder option */}
+                                  {/* Conditional rendering for ABSENT based on item.absent */}
+                                  {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>}
+                                  <option value="DIFFERENT">DIFFERENT</option>
+                                  <option value="MATCH">MATCH</option>
+                                </select>
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   ) : (
                     <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
                       No specific methodological features listed for this question to display in the table.
@@ -420,6 +595,30 @@ export default function Home() {
           )}
           {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
 
+        </div>
+      )}
+
+      {/* Description Modal */}
+      {isModalOpen && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h4>Describe the Difference</h4>
+            <textarea
+              style={modalInputStyle}
+              value={modalDescription}
+              onChange={(e) => setModalDescription(e.target.value)}
+              placeholder="Enter description here..."
+              required // Mark as required
+            />
+            <div style={modalButtonContainerStyle}>
+              <button onClick={handleModalCancel} style={{...modalButtonStyle, backgroundColor: '#ccc', color: 'black'}}>
+                Cancel
+              </button>
+              <button onClick={handleModalSave} style={{...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white'}}>
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
