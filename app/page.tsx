@@ -20,6 +20,9 @@ interface Question {
   methodologicalConsiderations?: MethodologicalConsideration[];
 }
 
+// Define the maximum number of new control columns
+const MAX_NEW_CONTROLS = 6;
+
 export default function Home() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -89,21 +92,24 @@ export default function Home() {
   };
 
   const handleAddControlColumn = () => {
-    setNewControlColumns(prevCount => prevCount + 1);
-    // Initialize selections for the new column with an empty string for each row (for placeholder)
-    setNewControlSelections(prevSelections => {
-        const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => '') || []; // Initial value is ''
-        return [...prevSelections, newColumn];
-    });
+      // Only add if the limit has not been reached
+      if (newControlColumns < MAX_NEW_CONTROLS) {
+          setNewControlColumns(prevCount => prevCount + 1);
+          // Initialize selections for the new column with an empty string for each row (for placeholder)
+          setNewControlSelections(prevSelections => {
+              const newColumn = selectedQuestion?.methodologicalConsiderations?.map(() => '') || []; // Initial value is ''
+              return [...prevSelections, newColumn];
+          });
 
-    // Scroll the table wrapper to the right AND the page to the bottom after adding a column
-    // Use setTimeout to allow DOM to update and column/page height to be rendered
-    setTimeout(() => {
-      if (tableWrapperRef.current) {
-        tableWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollWidth;
+          // Scroll the table wrapper to the right AND the page to the bottom after adding a column
+          // Use setTimeout to allow DOM to update and column/page height to be rendered
+          setTimeout(() => {
+            if (tableWrapperRef.current) {
+              tableWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollWidth;
+            }
+            window.scrollTo(0, document.body.scrollHeight); // Scroll page to the bottom
+          }, 50); // Small delay, adjust if necessary
       }
-      window.scrollTo(0, document.body.scrollHeight); // Scroll page to the bottom
-    }, 50); // Small delay, adjust if necessary
   };
 
   // Function to handle deleting a new control column (removes the last one added with current state)
@@ -319,11 +325,12 @@ export default function Home() {
                           backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
                           fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 10, minWidth: firstColumnWidth
                       }}>METHODOLOGICAL FEATURE</th>
-                      {/* Styled Header for Intervention - Sticky, matches COMPLETE header style */}
+                      {/* Styled Header for Intervention - NOW SCROLLABLE, matches COMPLETE header style */}
                       <th style={{
                           border: '1px solid white', padding: '8px', textAlign: 'left',
                           backgroundColor: '#e0e0e0', color: 'black', // Match COMPLETE header colors
-                          fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 10, minWidth: '150px'
+                          fontWeight: 'normal', // Removed sticky position, left, and zIndex
+                          minWidth: '150px'
                       }}>INTERVENTION</th>
                       {/* Styled Header for Complete - Keep existing style */}
                       <th style={{ border: '1px solid white', padding: '8px', textAlign: 'left', backgroundColor: '#e0e0e0', color: 'black', fontWeight: 'normal', minWidth: '100px' }}>COMPLETE</th>
@@ -340,9 +347,10 @@ export default function Home() {
                         style={{
                           border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
                         }}
-                      >{item.feature.toUpperCase()}</td>{/* Styled Cell for Intervention */}
+                      >{item.feature.toUpperCase()}</td>{/* Styled Cell for Intervention - NOW SCROLLABLE */}
                       <td style={{
-                        border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', position: 'sticky', left: firstColumnWidth, zIndex: 1, minWidth: '150px'
+                        border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
+                        minWidth: '150px'
                       }}>BASE</td>{/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
                       <td style={{
                         border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
@@ -393,10 +401,18 @@ export default function Home() {
                         onClick={handleAddControlColumn}
                         className="button" // Apply standard button class
                         style={newBaseButtonStyle} // Apply standard button styles
+                        disabled={newControlColumns >= MAX_NEW_CONTROLS} // Disable when 6 or more columns exist
                     >
                         ADD NEW CONTROL
                     </button>
                 </div>
+
+                {/* Message when max controls reached */}
+                {newControlColumns >= MAX_NEW_CONTROLS && (
+                    <p style={{ textAlign: 'center', color: 'red', marginTop: '10px' }}>
+                        Maximum number of NEW CONTROLS has been reached.
+                    </p>
+                )}
 
               </div>
             </>
