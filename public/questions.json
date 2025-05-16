@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "question": "Does neuroserpin induce axonal elongation?",
+    "question": "Does neuroserpin induce axonal elongation during neuronal development?",
     "independentVariable": "Neuroserpin exposure",
     "dependentVariable": "Axon length",
     "methodologicalConsiderations": [
@@ -57,7 +57,7 @@
   },
   {
     "id": 2,
-    "question": "Does rhythmic sensory stimulation improve fibromyalgia symptoms?",
+    "question": "Does rhythmic sensory stimulation improve fibromyalgia symptomatology?",
     "independentVariable": "Sensory stimulation",
     "dependentVariable": "Fibromyalgia symptom survey results",
     "methodologicalConsiderations": [
@@ -113,7 +113,7 @@
   },
   {
     "id": 3,
-    "question": "What is the effect of Rareberry consumption on time to fall off rotarod in Drosophila melanogaster?",
+    "question": "Does rareberry consumption affect rotarod performance??",
     "independentVariable": "Rareberry consumption",
     "dependentVariable": "Time to fall off rotarod",
     "methodologicalConsiderations": [
