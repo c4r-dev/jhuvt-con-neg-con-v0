@@ -251,11 +251,10 @@ export default function Home() {
       return true; // All new controls are valid (all selected and descriptions provided for DIFFERENT)
   };
 
-    // Function to handle the submission of data (placeholder)
     // Function to handle the submission of data
     const handleSubmit = async () => { // Make the function async
         const submissionData = {
-            questionId: selectedQuestionId,
+            questionId: selectedQuestionId, // Include the selected question ID
             newControlSelections: newControlSelections,
         };
 
@@ -279,11 +278,14 @@ export default function Home() {
             // You might want to redirect the user or reset the form here
              handleGoBackClick(); // Example: Go back to the question selection after submission
 
-        } catch (error: any) {
+        } catch (error: unknown) { // Changed type to unknown
             console.error('Error submitting data:', error);
-            alert(`Error submitting data: ${error.message}`);
+             // Safely access error message
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during submission.';
+            alert(`Error submitting data: ${errorMessage}`);
         }
     };
+
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 

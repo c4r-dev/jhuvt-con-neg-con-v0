@@ -1,7 +1,7 @@
 // app/api/submit-control-data/route.ts
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../lib/mongodb'; // Adjust the path if necessary
-import Submission from '../../../models/Submission'; // Adjust the path if necessary
+import dbConnect from '../../../lib/mongodb';
+import Submission from '../../../models/Submission';
 
 export async function POST(request: Request) {
   await dbConnect(); // Connect to MongoDB
@@ -19,8 +19,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, data: newSubmission }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) { // Changed type to unknown
     console.error('Error saving submission:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    // Safely access error message
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
   }
 }
