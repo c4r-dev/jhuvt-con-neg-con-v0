@@ -50,6 +50,7 @@ export default function Home() {
   const [newControlSelections, setNewControlSelections] = useState<ControlSelection[][]>([]);
   const [lastSubmissions, setLastSubmissions] = useState<FetchedSubmission[]>([]); // State to store last submissions
   const [showSubmissions, setShowSubmissions] = useState<boolean>(false); // State to control display of submissions box
+  const [activeQuestionTabId, setActiveQuestionTabId] = useState<number | null>(null); // State to track the active question tab
 
 
   // State for the modal
@@ -58,8 +59,10 @@ export default function Home() {
   const [modalDescription, setModalDescription] = useState('');
   const [previousValue, setPreviousValue] = useState(''); // Store the value before selecting DIFFERENT
 
-  // Create a ref for the table's scrollable container
+  // Create refs for table wrapper and submissions box
   const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const submissionsBoxRef = useRef<HTMLDivElement>(null); // Ref for the submissions box
+
 
   // Effect to fetch questions on initial load
   useEffect(() => {
@@ -97,6 +100,13 @@ export default function Home() {
                     }
                     const result = await response.json();
                     setLastSubmissions(result.data);
+                     // Set the first question with submissions as the active tab by default
+                     if (result.data.length > 0) {
+                         const uniqueQuestionIds: number[] = Array.from(new Set(result.data.map((sub: FetchedSubmission) => sub.questionId as number))); // Explicitly type array and cast elements
+                         if (uniqueQuestionIds.length > 0) {
+                             setActiveQuestionTabId(uniqueQuestionIds[0]);
+                         }
+                     }
                 } catch (error: unknown) {
                      console.error('Error fetching last submissions:', error);
                     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
@@ -106,6 +116,16 @@ export default function Home() {
             fetchLastSubmissions();
         }
     }, [showSubmissions]); // Dependency on showSubmissions state
+
+    // Effect to scroll to the submissions box when submissions are loaded and visible
+    useEffect(() => {
+        if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
+            // Use a small timeout to allow the DOM to update with fetched data
+             setTimeout(() => {
+                submissionsBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+             }, 100); // Adjust delay if needed
+        }
+    }, [showSubmissions, lastSubmissions]); // Dependencies on showSubmissions and lastSubmissions
 
 
   const handleQuestionSelection = (id: number) => {
@@ -137,6 +157,7 @@ export default function Home() {
     setNewControlSelections([]); // Reset new columns selections
     setLastSubmissions([]); // Clear fetched submissions
     setShowSubmissions(false); // Hide submissions box
+    setActiveQuestionTabId(null); // Reset active tab
      // Optionally scroll to top when going back
      window.scrollTo(0, 0);
   };
@@ -146,7 +167,7 @@ export default function Home() {
       if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
           setNewControlColumns(prevCount => prevCount + 1);
           // Initialize selections for the new column with an object { value: '', description: '' }
-          setNewControlSelections(prevSelections => {
+          setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
               const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
               return [...prevSelections, newColumn];
           });
@@ -170,7 +191,7 @@ export default function Home() {
           setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
 
           // Remove the column at the specified index from selections
-          setNewControlSelections(prevSelections => {
+          setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
               const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
               return updatedSelections;
           });
@@ -193,8 +214,8 @@ export default function Home() {
               setModalDescription(currentSelection?.description || '');
           } else {
               // For other values, update state directly and clear description
-              setNewControlSelections(prevSelections => {
-                  const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
+              setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+                  const updatedSelections = prevSelections.map((column, cIdx) => {
                       if (cIdx === colIndex) {
                           return column.map((cellValue, rIdx) => {
                               if (rIdx === rowIndex) {
@@ -220,8 +241,8 @@ export default function Home() {
 
     // Update the state with the value 'DIFFERENT' and the provided description
     if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
-        setNewControlSelections(prevSelections => {
-            const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
+        setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+            const updatedSelections = prevSelections.map((column, cIdx) => {
                 if (cIdx === editingCell.colIndex) {
                     return column.map((cellValue, rIdx) => {
                         if (rIdx === editingCell.rowIndex) {
@@ -247,9 +268,9 @@ export default function Home() {
   const handleModalCancel = () => {
       // Revert the dropdown value to its previous state and clear description
       if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
-           setNewControlSelections(prevSelections => {
-                const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
-                    if (cIdx === editingCell.colIndex) {
+           setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+                const updatedSelections = prevSelections.map((column, cIdx) => {
+                    if (cIdx === editingCell.colIndex) { // Corrected typo here
                         return column.map((cellValue, rIdx) => {
                             if (rIdx === editingCell.rowIndex) {
                                 // Revert to the previous value and clear description
@@ -318,14 +339,11 @@ export default function Home() {
 
             const result = await response.json();
             console.log('Submission successful:', result.data);
-            alert("New Control data submitted successfully!");
+            // Removed the alert("New Control data submitted successfully!");
+
             // After successful submission, show the submissions box and trigger fetch
             setShowSubmissions(true);
-            // Scroll to the bottom to show the new box
-            setTimeout(() => {
-                window.scrollTo(0, document.body.scrollHeight);
-            }, 50);
-
+            // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
 
         } catch (error: unknown) {
             console.error('Error submitting data:', error);
@@ -337,6 +355,9 @@ export default function Home() {
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
+    // Find the currently active question based on the active tab ID
+  const activeQuestion = questions.find(q => q.id === activeQuestionTabId);
+
 
   // Function to determine cell style based on value for the "COMPLETE" column and dropdowns
   const getCompleteCellStyle = (value: string): React.CSSProperties => {
@@ -356,6 +377,9 @@ export default function Home() {
 
   // Estimated width for the first sticky column (adjust if needed)
   const firstColumnWidth = '200px';
+    // Adjusted sticky left position for Methodological Feature after removing Submission #
+    const stickyFeatureLeft = '0px';
+
 
   // Define a common header style
   const commonHeaderStyle: React.CSSProperties = {
@@ -368,6 +392,30 @@ export default function Home() {
     minWidth: '150px', // Match INTERVENTION header min-width
   };
 
+    // Style for submitted table cells
+    const submittedTableCellStyle: React.CSSProperties = {
+        border: '1px solid #ddd',
+        padding: '8px',
+        textAlign: 'left',
+        fontWeight: 'normal',
+        minWidth: '150px', // Match interactive table column width
+        verticalAlign: 'top', // Align content to the top
+    };
+
+    // Style for the sticky Methodological Feature column in the submitted table
+    const submittedStickyFeatureCellStyle: React.CSSProperties = {
+        ...submittedTableCellStyle, // Inherit base styles
+        backgroundColor: 'black',
+        color: 'white',
+        position: 'sticky',
+        left: stickyFeatureLeft, // Use adjusted sticky left position
+        zIndex: 1,
+        minWidth: firstColumnWidth, // Match interactive table feature column width
+        cursor: 'help', // Indicate hover for description
+    };
+
+     // Removed submittedStickySubmissionCellStyle
+
 
   // Base style for buttons (padding, border, etc.)
   const newBaseButtonStyle: React.CSSProperties = {
@@ -377,6 +425,14 @@ export default function Home() {
     cursor: 'pointer',
     fontSize: '1rem',
   };
+
+    // Style for tab buttons
+    const tabButtonStyle: React.CSSProperties = {
+        ...newBaseButtonStyle,
+        padding: '8px 12px', // Smaller padding for tabs
+        fontSize: '0.9rem', // Smaller font size
+    };
+
 
   // Style for info boxes (IV, DV, Features, Measurement)
   const infoBoxStyle: React.CSSProperties = {
@@ -460,6 +516,31 @@ export default function Home() {
       fontWeight: 'bold',
   };
 
+    // Group submissions by questionId
+    const submissionsByQuestionId = lastSubmissions.reduce((acc, submission) => {
+        if (!acc[submission.questionId]) {
+            acc[submission.questionId] = [];
+        }
+        // Store original index to calculate submission number within the filtered list later
+        acc[submission.questionId].push(submission);
+        return acc;
+    }, {} as Record<number, FetchedSubmission[]>);
+
+
+    // Get unique question IDs from submissions, sorted
+    const uniqueSubmissionQuestionIds = Object.keys(submissionsByQuestionId).map(Number).sort((a, b) => a - b);
+
+    // Get submissions for the active tab, sorted by createdAt for consistent numbering within tab
+    const activeSubmissions = activeQuestionTabId !== null
+        ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
+        : [];
+
+    // Determine the number of new control columns for the active question's submissions
+    // This needs to find the maximum number of new controls across all submissions for the active question
+    const maxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
+        return Math.max(max, submission.newControlSelections.length);
+    }, 0);
+
 
   return (
     // Reduced top margin for less whitespace before the first heading
@@ -497,9 +578,9 @@ export default function Home() {
         </>
       )}
 
-      {/* Selected Question Details UI - Reduced top margin */}
+      {/* Selected Question Details UI - always shown when a question is selected */}
       {selectedQuestion && (
-        <div style={{ marginTop: selectedQuestion && selectionLocked && !showSubmissions ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
 
           {/* Standard Details */}
@@ -537,10 +618,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* === CONDITIONAL BUTTON DISPLAY === */}
-
-          {/* Initial NEXT button - centered and spaced below content, shown when a question is selected */}
-          {!selectionLocked && selectedQuestionId && !showSubmissions && (
+          {/* Initial NEXT button - centered and spaced below content, shown when a question is selected and not locked */}
+          {!selectionLocked && selectedQuestionId && (
             <div style={{ marginTop: '8px', textAlign: 'center' }}> {/* Further Reduced marginTop */}
               <button
                 onClick={handleLockSelectionClick}
@@ -555,26 +634,28 @@ export default function Home() {
             </div>
           )}
 
-          {/* UI shown only AFTER selection is locked AND submissions are NOT shown */}
-          {selectionLocked && !showSubmissions && (
+          {/* === INTERACTIVE TABLE AND BUTTONS SECTION (Shown when selection is locked) === */}
+          {selectionLocked && (
             <>
               {/* Combined Box for Instructions and Table */}
               <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
-                {/* First Instruction Block */}
-                <div style={{ marginBottom: '20px' }}>
-                  <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
-                  <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
-                    This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
-                  </p>
-                </div>
-
-                {/* Second Instruction Text Block - Changed text and increased font size */}
-                 <div style={{ marginBottom: '15px', color: '#333' }}>
-                    <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
-                    <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}>
-                      The interactive table below will update to allow you to consider how different components are handled across treatments.
-                    </p>
-                  </div>
+                {/* Instructions Block (Hidden after submissions are shown) */}
+                {!showSubmissions && (
+                    <>
+                        <div style={{ marginBottom: '20px' }}>
+                          <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
+                          <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
+                            This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
+                          </p>
+                        </div>
+                         <div style={{ marginBottom: '15px', color: '#333' }}>
+                            <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
+                            <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}>
+                              The interactive table below will update to allow you to consider how different components are handled across treatments.
+                            </p>
+                          </div>
+                    </>
+                )}
 
 
                 {/* Interactive Table - Wrapped for horizontal scrolling, with sticky columns */}
@@ -607,63 +688,71 @@ export default function Home() {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (
-                          <tr key={rowIndex}>
-                            <td // Using rowIndex for key
-                              title={item.description}
-                              style={{
-                                border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
-                              }}
-                            >
-                              {item.feature.toUpperCase()}
-                            </td>
-                            {/* Styled Cell for Intervention - NOW SCROLLABLE */}
-                            <td style={{
-                              border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
-                              minWidth: '150px'
-                            }}>
-                              BASE
-                            </td>
-                            {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
-                            <td style={{
-                              border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
-                            }}>
-                              {item.option1.toUpperCase()}
-                            </td>
-                            {/* Dynamically added New Control Cells with dropdowns and styling */}
-                            {[...Array(newControlColumns)].map((_, colIndex) => (
-                              <td
-                                key={`new-cell-${rowIndex}-${colIndex}`}
-                                style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}
-                                // Display description on hover for DIFFERENT if it exists
-                                title={newControlSelections[colIndex]?.[rowIndex]?.value === 'DIFFERENT' && newControlSelections[colIndex]?.[rowIndex]?.description ? newControlSelections[colIndex]?.[rowIndex]?.description : ''}
+                        {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
+                          selectedQuestion.methodologicalConsiderations.map((item, rowIndex) => (
+                            <tr key={rowIndex}>
+                              <td // Using rowIndex for key
+                                title={item.description}
+                                style={{
+                                  border: '1px solid #ddd', padding: '8px', cursor: 'help', backgroundColor: 'black', color: 'white', fontWeight: 'normal', position: 'sticky', left: 0, zIndex: 1, minWidth: firstColumnWidth
+                                }}
                               >
-                                <select
-                                  name={`control_${colIndex}_${rowIndex}`} // Added name attribute
-                                  id={`control_${colIndex}_${rowIndex}`} // Added id attribute
-                                  value={newControlSelections[colIndex]?.[rowIndex]?.value || ''} // Get value from state
-                                  onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
-                                  style={{
-                                    width: '100%',
-                                    padding: '4px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    fontSize: '1rem',
-                                    fontFamily: 'inherit',
-                                    ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex]?.value || '') // Apply dynamic style based on value
-                                  }} // Basic styling, inherit font, apply dynamic style
-                                  disabled={showSubmissions} // Disable dropdown if showSubmissions is true
-                                >
-                                  <option value="" disabled>Define</option> {/* Placeholder option */}
-                                  {/* Conditional rendering for ABSENT based on item.absent */}
-                                  {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>}
-                                  <option value="DIFFERENT">DIFFERENT</option>
-                                  <option value="MATCH">MATCH</option>
-                                </select>
+                                {item.feature.toUpperCase()}
                               </td>
-                            ))}
-                          </tr>
-                        ))}
+                              {/* Styled Cell for Intervention - NOW SCROLLABLE */}
+                              <td style={{
+                                border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
+                                minWidth: '150px'
+                              }}>
+                                BASE
+                              </td>
+                              {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
+                              <td style={{
+                                border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
+                              }}>
+                                {item.option1.toUpperCase()}
+                              </td>
+                              {/* Dynamically added New Control Cells with dropdowns and styling */}
+                              {[...Array(newControlColumns)].map((_, colIndex) => (
+                                <td
+                                  key={`new-cell-${rowIndex}-${colIndex}`}
+                                  style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}
+                                  // Display description on hover for DIFFERENT if it exists
+                                  title={newControlSelections[colIndex]?.[rowIndex]?.value === 'DIFFERENT' && newControlSelections[colIndex]?.[rowIndex]?.description ? newControlSelections[colIndex]?.[rowIndex]?.description : ''}
+                                >
+                                  <select
+                                    name={`control_${colIndex}_${rowIndex}`} // Added name attribute
+                                    id={`control_${colIndex}_${rowIndex}`} // Added id attribute
+                                    value={newControlSelections[colIndex]?.[rowIndex]?.value || ''} // Get value from state
+                                    onChange={(e) => handleNewControlChange(colIndex, rowIndex, e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '4px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #ccc',
+                                      fontSize: '1rem',
+                                      fontFamily: 'inherit',
+                                      ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex]?.value || '') // Apply dynamic style based on value
+                                    }} // Basic styling, inherit font, apply dynamic style
+                                    disabled={showSubmissions} // Disable dropdown if showSubmissions is true
+                                  >
+                                    <option value="" disabled>Define</option> {/* Placeholder option */}
+                                    {/* Conditional rendering for ABSENT based on item.absent */}
+                                    {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>}
+                                    <option value="DIFFERENT">DIFFERENT</option>
+                                    <option value="MATCH">MATCH</option>
+                                  </select>
+                                </td>
+                              ))}
+                            </tr>
+                          ))
+                        ) : (
+                             <tr>
+                                <td colSpan={3 + newControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777' }}>
+                                     No specific methodological features listed for this question.
+                                </td>
+                             </tr>
+                        )}
                       </tbody>
                     </table>
                   ) : (
@@ -672,6 +761,7 @@ export default function Home() {
                     </p>
                   )}
                 </div>
+
 
                  {/* Button Container - Inside the box, below the table, centered with flex */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
@@ -706,14 +796,14 @@ export default function Home() {
                     )}
                 </div>
 
-                {/* Message when max controls reached */}
+                {/* Message when max controls reached (Hidden after submissions are shown) */}
                 {newControlColumns >= MAX_NEW_CONTROLS && !showSubmissions && (
                     <p style={{ textAlign: 'center', color: 'red', marginTop: '10px' }}>
                         Maximum number of NEW CONTROLS has been reached.
                     </p>
                 )}
 
-                {/* Message when validation fails but button isn't shown yet */}
+                {/* Message when validation fails but button isn't shown yet (Hidden after submissions are shown) */}
                  {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
                     <p style={{ textAlign: 'center', color: 'orange', marginTop: '10px' }}>
                          Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
@@ -724,39 +814,145 @@ export default function Home() {
               </div>
             </>
           )}
-          {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
+          {/* === END OF INTERACTIVE TABLE AND BUTTONS SECTION === */}
+
+
+          {/* Box to display last 30 submissions (shown if showSubmissions is true and there are submissions) */}
+          {showSubmissions && lastSubmissions.length > 0 && (
+               <div style={{ ...staticBoxStyle, marginTop: '20px' }} ref={submissionsBoxRef}> {/* Assign ref here */}
+                    {/* Updated Heading and Description */}
+                    <h3 style={{marginTop: 0, marginBottom: '5px', textAlign: 'center'}}>
+                        Consider how others have designed their controls.
+                    </h3>
+                    <p style={{ marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', color: '#555' }}>
+                        Below you can view controls submitted by {"{the original authors/other students}"} for this experiment. Hover over any group to examine it in detail.
+                    </p>
+
+
+                    {/* Tabs for each question with submissions */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        {uniqueSubmissionQuestionIds.map(questionId => {
+                             const question = questions.find(q => q.id === questionId);
+                             const buttonText = question ? `Question ${question.id}` : `Question ${questionId}`; // Fallback text
+                             return (
+                                 <button
+                                     key={questionId}
+                                     onClick={() => setActiveQuestionTabId(questionId)}
+                                     style={{
+                                         ...tabButtonStyle, // Use the defined tab button style
+                                         backgroundColor: activeQuestionTabId === questionId ? '#6F00FF' : '#e0e0e0',
+                                         color: activeQuestionTabId === questionId ? 'white' : 'black',
+                                         fontWeight: activeQuestionTabId === questionId ? 'bold' : 'normal',
+                                     }}
+                                 >
+                                     {buttonText}
+                                 </button>
+                             );
+                        })}
+                    </div>
+
+                     {/* Display content for the active question tab */}
+                     {activeQuestionTabId !== null && (
+                        <>
+                            {/* Show Question text for the active tab */}
+                            {activeQuestion && (
+                                <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
+                                    Question {activeQuestion.id}: {activeQuestion.question}
+                                </h4>
+                            )}
+
+                            {/* Display submissions for the active question tab in a table */}
+                            {activeSubmissions.length > 0 ? (
+                                <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling if needed */}
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+                                        <thead>
+                                            <tr>
+                                                {/* Removed SUBMISSION # header */}
+                                                <th style={{...commonHeaderStyle, minWidth: firstColumnWidth, position: 'sticky', left: 0, zIndex: 2}}>METHODOLOGICAL FEATURE</th> {/* Header for Feature - Sticky, adjusted left */}
+                                                <th style={{...commonHeaderStyle, minWidth: '150px'}}>INTERVENTION</th> {/* Header for Intervention (Base) */}
+                                                <th style={{...commonHeaderStyle, minWidth: '100px'}}>COMPLETE</th> {/* Header for Complete Control */}
+                                                {/* Dynamically added Headers for New Controls */}
+                                                {/* Create a header for each *potential* new control column based on the max found */}
+                                                {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
+                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>NEW CONTROL {colIndex + 1}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {activeSubmissions.map((submission, subIndex) => {
+                                                // Ensure activeQuestion and its methodologicalConsiderations are available
+                                                if (!activeQuestion || !activeQuestion.methodologicalConsiderations) {
+                                                    // Render a message or skip if question data is missing for this submission
+                                                     // Adjust colSpan after removing Submission # column
+                                                    return (
+                                                        <tr key={`no-features-${submission._id}`}>
+                                                             <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
+                                                                  No methodological features found for this question.
+                                                             </td>
+                                                        </tr>
+                                                    );
+                                                }
+
+                                                // Destructure methodologicalConsiderations here and explicitly type it
+                                                const methodologicalConsiderations: MethodologicalConsideration[] = activeQuestion.methodologicalConsiderations;
+
+
+                                                // Loop through each methodological consideration for this submission
+                                                return methodologicalConsiderations.map((consideration, rowIndex) => (
+                                                    <tr key={`${submission._id}-${rowIndex}`}>
+                                                        {/* Removed Submission Number Cell */}
+                                                        {/* Methodological Feature Cell (Sticky) */}
+                                                        <td
+                                                            title={consideration.description}
+                                                             style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
+                                                        >
+                                                             {consideration.feature.toUpperCase()}
+                                                        </td>
+                                                        {/* Intervention Cell (Base) - Always "BASE" */}
+                                                         <td style={submittedTableCellStyle}>
+                                                             BASE
+                                                          </td>
+                                                        {/* Complete Control Cell - Get value from questions.json */}
+                                                         <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
+                                                            {consideration.option1.toUpperCase()}
+                                                          </td>
+                                                        {/* Dynamically added New Control Cells */}
+                                                        {/* Loop through the *maximum* number of columns, and display data if it exists for this submission */}
+                                                        {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => {
+                                                             const controlSelection = submission.newControlSelections[colIndex]?.[rowIndex];
+                                                            return (
+                                                                <td
+                                                                    key={`${submission._id}-${rowIndex}-${colIndex}-submitted`}
+                                                                    style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                                                                    title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                                                                >
+                                                                    {controlSelection?.value.toUpperCase() || '-'} {/* Display value or '-' if no data for this column/row */}
+                                                                    {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                                                                        <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                                                                    )}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                ));
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
+                            )}
+                        </>
+                     )}
+                      {/* Message if no active tab selected */}
+                      {activeQuestionTabId === null && uniqueSubmissionQuestionIds.length > 0 && (
+                           <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Select a question tab above to view submissions.</p>
+                      )}
+
+                </div>
+          )}
 
         </div>
-      )}
-
-      {/* Box to display last 30 submissions (shown after submit) */}
-      {showSubmissions && lastSubmissions.length > 0 && (
-           <div style={{ ...staticBoxStyle, marginTop: '20px' }}>
-                <h3 style={{marginTop: 0, marginBottom: '15px', textAlign: 'center'}}>Last 30 Submissions</h3>
-                 {lastSubmissions.map((submission, subIndex) => (
-                    <div key={submission._id} style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '4px', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                        <p style={{fontWeight: 'bold', marginBottom: '10px'}}>Submission {lastSubmissions.length - subIndex} (Question ID: {submission.questionId})</p> {/* Display submission number (most recent is 1) and Question ID */}
-                        {submission.newControlSelections.map((controlColumn, colIndex) => (
-                            <div key={colIndex} style={{ marginBottom: '15px', padding: '10px', border: '1px dashed #ccc', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
-                                <p style={{fontWeight: 'bold', marginBottom: '8px'}}>New Control {colIndex + 1}:</p>
-                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                    {controlColumn.map((selection, rowIndex) => {
-                                        const consideration = selectedQuestion?.methodologicalConsiderations?.[rowIndex];
-                                        return (
-                                            <li key={rowIndex} style={{ marginBottom: '5px', fontSize: '0.9rem', color: '#555' }}>
-                                                <strong>{consideration?.feature || `Feature ${rowIndex + 1}`}:</strong> {selection.value}
-                                                {selection.value === 'DIFFERENT' && selection.description && (
-                                                    <span style={{ fontStyle: 'italic', marginLeft: '5px' }}>({selection.description})</span>
-                                                )}
-                                            </li>
-                                        );
-                                    })}
-                                 </ul>
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
       )}
 
       {/* Description Modal */}
