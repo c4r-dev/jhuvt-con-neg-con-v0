@@ -27,6 +27,15 @@ interface ControlSelection {
   description: string;
 }
 
+// Interface for the fetched Submission data (matching the structure returned by the API)
+interface FetchedSubmission {
+    _id: string; // MongoDB document ID
+    questionId: number;
+    newControlSelections: ControlSelection[][];
+    createdAt: string; // Or Date, depending on how you want to handle it on the client
+}
+
+
 // Define the maximum number of new control columns
 const MAX_NEW_CONTROLS = 6;
 
@@ -39,6 +48,9 @@ export default function Home() {
   const [newControlColumns, setNewControlColumns] = useState<number>(0); // State to track number of new columns
   // Updated state to store objects with value and description
   const [newControlSelections, setNewControlSelections] = useState<ControlSelection[][]>([]);
+  const [lastSubmissions, setLastSubmissions] = useState<FetchedSubmission[]>([]); // State to store last submissions
+  const [showSubmissions, setShowSubmissions] = useState<boolean>(false); // State to control display of submissions box
+
 
   // State for the modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,6 +61,7 @@ export default function Home() {
   // Create a ref for the table's scrollable container
   const tableWrapperRef = useRef<HTMLDivElement>(null);
 
+  // Effect to fetch questions on initial load
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -71,6 +84,29 @@ export default function Home() {
 
     fetchQuestions();
   }, []);
+
+    // New effect to fetch last submissions when showSubmissions becomes true
+    useEffect(() => {
+        if (showSubmissions) {
+            const fetchLastSubmissions = async () => {
+                try {
+                    const response = await fetch('/api/get-submissions');
+                    if (!response.ok) {
+                         const errorData = await response.json();
+                         throw new Error(errorData.error || 'Failed to fetch last submissions');
+                    }
+                    const result = await response.json();
+                    setLastSubmissions(result.data);
+                } catch (error: unknown) {
+                     console.error('Error fetching last submissions:', error);
+                    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
+                    alert(`Error fetching last submissions: ${errorMessage}`);
+                }
+            };
+            fetchLastSubmissions();
+        }
+    }, [showSubmissions]); // Dependency on showSubmissions state
+
 
   const handleQuestionSelection = (id: number) => {
     setSelectedQuestionId(id);
@@ -99,13 +135,15 @@ export default function Home() {
     setSelectedQuestionId(null);
     setNewControlColumns(0); // Reset new columns count
     setNewControlSelections([]); // Reset new columns selections
+    setLastSubmissions([]); // Clear fetched submissions
+    setShowSubmissions(false); // Hide submissions box
      // Optionally scroll to top when going back
      window.scrollTo(0, 0);
   };
 
   const handleAddControlColumn = () => {
-      // Only add if the limit has not been reached
-      if (newControlColumns < MAX_NEW_CONTROLS) {
+      // Only add if the limit has not been reached and not in submissions view
+      if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
           setNewControlColumns(prevCount => prevCount + 1);
           // Initialize selections for the new column with an object { value: '', description: '' }
           setNewControlSelections(prevSelections => {
@@ -126,44 +164,50 @@ export default function Home() {
 
   // Function to handle deleting a new control column by index
   const handleDeleteControlColumn = (colIndexToDelete: number) => {
-      // Decrease column count
-      setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
+      // Only allow deletion if not in submissions view
+      if (!showSubmissions) {
+          // Decrease column count
+          setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
 
-      // Remove the column at the specified index from selections
-      setNewControlSelections(prevSelections => {
-          const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
-          return updatedSelections;
-      });
+          // Remove the column at the specified index from selections
+          setNewControlSelections(prevSelections => {
+              const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
+              return updatedSelections;
+          });
+      }
   };
 
   // Function to handle changes in the new control column dropdowns
   const handleNewControlChange = (colIndex: number, rowIndex: number, value: string) => {
-      const currentSelection = newControlSelections[colIndex]?.[rowIndex];
-      const prevValue = currentSelection?.value || '';
-      setPreviousValue(prevValue); // Store the previous value
+      // Only allow changes if not in submissions view
+      if (!showSubmissions) {
+          const currentSelection = newControlSelections[colIndex]?.[rowIndex];
+          const prevValue = currentSelection?.value || '';
+          setPreviousValue(prevValue); // Store the previous value
 
-      if (value === 'DIFFERENT') {
-          // Open modal and store editing cell info
-          setIsModalOpen(true);
-          setEditingCell({ colIndex, rowIndex });
-          // Initialize modal description with existing description if any
-          setModalDescription(currentSelection?.description || '');
-      } else {
-          // For other values, update state directly and clear description
-          setNewControlSelections(prevSelections => {
-              const updatedSelections = prevSelections.map((column, cIdx) => {
-                  if (cIdx === colIndex) {
-                      return column.map((cellValue, rIdx) => {
-                          if (rIdx === rowIndex) {
-                              return { value: value, description: '' }; // Clear description for non-DIFFERENT
-                          }
-                          return cellValue;
-                      });
-                  }
-                  return column;
+          if (value === 'DIFFERENT') {
+              // Open modal and store editing cell info
+              setIsModalOpen(true);
+              setEditingCell({ colIndex, rowIndex });
+              // Initialize modal description with existing description if any
+              setModalDescription(currentSelection?.description || '');
+          } else {
+              // For other values, update state directly and clear description
+              setNewControlSelections(prevSelections => {
+                  const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
+                      if (cIdx === colIndex) {
+                          return column.map((cellValue, rIdx) => {
+                              if (rIdx === rowIndex) {
+                                  return { value: value, description: '' }; // Clear description for non-DIFFERENT
+                              }
+                              return cellValue;
+                          });
+                      }
+                      return column;
+                  });
+                  return updatedSelections;
               });
-              return updatedSelections;
-          });
+          }
       }
   };
 
@@ -177,7 +221,7 @@ export default function Home() {
     // Update the state with the value 'DIFFERENT' and the provided description
     if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
         setNewControlSelections(prevSelections => {
-            const updatedSelections = prevSelections.map((column, cIdx) => {
+            const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
                 if (cIdx === editingCell.colIndex) {
                     return column.map((cellValue, rIdx) => {
                         if (rIdx === editingCell.rowIndex) {
@@ -204,7 +248,7 @@ export default function Home() {
       // Revert the dropdown value to its previous state and clear description
       if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
            setNewControlSelections(prevSelections => {
-                const updatedSelections = prevSelections.map((column, cIdx) => {
+                const updatedSelections: ControlSelection[][] = prevSelections.map((column, cIdx) => { // Added type annotation here
                     if (cIdx === editingCell.colIndex) {
                         return column.map((cellValue, rIdx) => {
                             if (rIdx === editingCell.rowIndex) {
@@ -275,10 +319,15 @@ export default function Home() {
             const result = await response.json();
             console.log('Submission successful:', result.data);
             alert("New Control data submitted successfully!");
-            // You might want to redirect the user or reset the form here
-             handleGoBackClick(); // Example: Go back to the question selection after submission
+            // After successful submission, show the submissions box and trigger fetch
+            setShowSubmissions(true);
+            // Scroll to the bottom to show the new box
+            setTimeout(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+            }, 50);
 
-        } catch (error: unknown) { // Changed type to unknown
+
+        } catch (error: unknown) {
             console.error('Error submitting data:', error);
              // Safely access error message
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during submission.';
@@ -415,8 +464,8 @@ export default function Home() {
   return (
     // Reduced top margin for less whitespace before the first heading
     <div style={{ padding: '20px', maxWidth: '800px', margin: '20px auto 20px auto' }}>
-      {/* Question Selection UI (hidden when locked) */}
-      {!selectionLocked && (
+      {/* Question Selection UI (hidden when locked or submissions are shown) */}
+      {!selectionLocked && !showSubmissions && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
           {loading && <p>Loading questions...</p>}
@@ -450,7 +499,7 @@ export default function Home() {
 
       {/* Selected Question Details UI - Reduced top margin */}
       {selectedQuestion && (
-        <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <div style={{ marginTop: selectedQuestion && selectionLocked && !showSubmissions ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
 
           {/* Standard Details */}
@@ -491,7 +540,7 @@ export default function Home() {
           {/* === CONDITIONAL BUTTON DISPLAY === */}
 
           {/* Initial NEXT button - centered and spaced below content, shown when a question is selected */}
-          {!selectionLocked && selectedQuestionId && (
+          {!selectionLocked && selectedQuestionId && !showSubmissions && (
             <div style={{ marginTop: '8px', textAlign: 'center' }}> {/* Further Reduced marginTop */}
               <button
                 onClick={handleLockSelectionClick}
@@ -506,8 +555,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* UI shown only AFTER selection is locked */}
-          {selectionLocked && (
+          {/* UI shown only AFTER selection is locked AND submissions are NOT shown */}
+          {selectionLocked && !showSubmissions && (
             <>
               {/* Combined Box for Instructions and Table */}
               <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
@@ -549,7 +598,8 @@ export default function Home() {
                           {/* Dynamically added New Control Headers with delete icon - Matches common header style */}
                           {[...Array(newControlColumns)].map((_, colIndex) => (
                             <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>NEW CONTROL
-                              <span style={{ marginLeft: '8px', cursor: 'pointer', verticalAlign: 'middle' }} onClick={() => handleDeleteControlColumn(colIndex)} title="Delete column"> {/* Pass colIndex here */}
+                              {/* Disable delete button if showSubmissions is true */}
+                              <span style={{ marginLeft: '8px', cursor: showSubmissions ? 'not-allowed' : 'pointer', verticalAlign: 'middle', opacity: showSubmissions ? 0.5 : 1 }} onClick={() => handleDeleteControlColumn(colIndex)} title="Delete column"> {/* Pass colIndex here */}
                                   <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
                               </span>
                             </th>
@@ -602,6 +652,7 @@ export default function Home() {
                                     fontFamily: 'inherit',
                                     ...getCompleteCellStyle(newControlSelections[colIndex]?.[rowIndex]?.value || '') // Apply dynamic style based on value
                                   }} // Basic styling, inherit font, apply dynamic style
+                                  disabled={showSubmissions} // Disable dropdown if showSubmissions is true
                                 >
                                   <option value="" disabled>Define</option> {/* Placeholder option */}
                                   {/* Conditional rendering for ABSENT based on item.absent */}
@@ -633,17 +684,18 @@ export default function Home() {
                       START OVER {/* Changed button text */}
                     </button>
                     {/* ADD NEW CONTROL Button - Placed second for right position */}
+                    {/* Disable add button if showSubmissions is true */}
                     <button
                         onClick={handleAddControlColumn}
                         className="button" // Apply standard button class
-                        style={newBaseButtonStyle} // Apply standard button styles
-                        disabled={newControlColumns >= MAX_NEW_CONTROLS} // Disable when 6 or more columns exist
+                        style={{...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer'}} // Apply standard button styles, add space
+                        disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions} // Disable when 6 or more columns exist or showSubmissions is true
                     >
                         ADD NEW CONTROL
                     </button>
 
                     {/* SUBMIT Button - Conditionally rendered and styled */}
-                    {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && (
+                    {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
                          <button
                             onClick={handleSubmit}
                             className="button" // Apply standard button class
@@ -655,14 +707,14 @@ export default function Home() {
                 </div>
 
                 {/* Message when max controls reached */}
-                {newControlColumns >= MAX_NEW_CONTROLS && (
+                {newControlColumns >= MAX_NEW_CONTROLS && !showSubmissions && (
                     <p style={{ textAlign: 'center', color: 'red', marginTop: '10px' }}>
                         Maximum number of NEW CONTROLS has been reached.
                     </p>
                 )}
 
                 {/* Message when validation fails but button isn't shown yet */}
-                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && (
+                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
                     <p style={{ textAlign: 'center', color: 'orange', marginTop: '10px' }}>
                          Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
                      </p>
@@ -675,6 +727,36 @@ export default function Home() {
           {/* === END OF CONDITIONAL BUTTON DISPLAY === */}
 
         </div>
+      )}
+
+      {/* Box to display last 30 submissions (shown after submit) */}
+      {showSubmissions && lastSubmissions.length > 0 && (
+           <div style={{ ...staticBoxStyle, marginTop: '20px' }}>
+                <h3 style={{marginTop: 0, marginBottom: '15px', textAlign: 'center'}}>Last 30 Submissions</h3>
+                 {lastSubmissions.map((submission, subIndex) => (
+                    <div key={submission._id} style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '4px', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                        <p style={{fontWeight: 'bold', marginBottom: '10px'}}>Submission {lastSubmissions.length - subIndex} (Question ID: {submission.questionId})</p> {/* Display submission number (most recent is 1) and Question ID */}
+                        {submission.newControlSelections.map((controlColumn, colIndex) => (
+                            <div key={colIndex} style={{ marginBottom: '15px', padding: '10px', border: '1px dashed #ccc', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
+                                <p style={{fontWeight: 'bold', marginBottom: '8px'}}>New Control {colIndex + 1}:</p>
+                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                    {controlColumn.map((selection, rowIndex) => {
+                                        const consideration = selectedQuestion?.methodologicalConsiderations?.[rowIndex];
+                                        return (
+                                            <li key={rowIndex} style={{ marginBottom: '5px', fontSize: '0.9rem', color: '#555' }}>
+                                                <strong>{consideration?.feature || `Feature ${rowIndex + 1}`}:</strong> {selection.value}
+                                                {selection.value === 'DIFFERENT' && selection.description && (
+                                                    <span style={{ fontStyle: 'italic', marginLeft: '5px' }}>({selection.description})</span>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
+                                 </ul>
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
       )}
 
       {/* Description Modal */}
