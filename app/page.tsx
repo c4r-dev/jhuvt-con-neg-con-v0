@@ -764,37 +764,40 @@ export default function Home() {
 
 
                  {/* Button Container - Inside the box, below the table, centered with flex */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
-                    {/* START OVER Button - Placed first for left position */}
-                    <button
-                      onClick={handleGoBackClick}
-                      className="button" // Apply standard button class
-                      style={{...newBaseButtonStyle, marginRight: '10px'}} // Apply base button styles, add some space to the right
-                    >
-                      START OVER {/* Changed button text */}
-                    </button>
-                    {/* ADD NEW CONTROL Button - Placed second for right position */}
-                    {/* Disable add button if showSubmissions is true */}
-                    <button
-                        onClick={handleAddControlColumn}
-                        className="button" // Apply standard button class
-                        style={{...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer'}} // Apply standard button styles, add space
-                        disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions} // Disable when 6 or more columns exist or showSubmissions is true
-                    >
-                        ADD NEW CONTROL
-                    </button>
-
-                    {/* SUBMIT Button - Conditionally rendered and styled */}
-                    {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
-                         <button
-                            onClick={handleSubmit}
+                {!showSubmissions && ( // Added this condition
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
+                        {/* START OVER Button - Placed first for left position */}
+                        <button
+                          onClick={handleGoBackClick}
+                          className="button" // Apply standard button class
+                          style={{...newBaseButtonStyle, marginRight: '10px'}} // Apply base button styles, add some space to the right
+                        >
+                          START OVER {/* Changed button text */}
+                        </button>
+                        {/* ADD NEW CONTROL Button - Placed second for right position */}
+                        {/* Disable add button if showSubmissions is true */}
+                        <button
+                            onClick={handleAddControlColumn}
                             className="button" // Apply standard button class
-                             style={{...newBaseButtonStyle, marginLeft: '10px'}} // Apply base button styles, add space
-                         >
-                            SUBMIT
-                         </button>
-                    )}
-                </div>
+                            style={{...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer'}} // Apply standard button styles, add space
+                            disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions} // Disable when 6 or more columns exist or showSubmissions is true
+                        >
+                            ADD NEW CONTROL
+                        </button>
+
+                        {/* SUBMIT Button - Conditionally rendered and styled */}
+                        {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
+                             <button
+                                onClick={handleSubmit}
+                                className="button" // Apply standard button class
+                                 style={{...newBaseButtonStyle, marginLeft: '10px'}} // Apply base button styles, add space
+                             >
+                                SUBMIT
+                             </button>
+                        )}
+                    </div>
+                )}
+
 
                 {/* Message when max controls reached (Hidden after submissions are shown) */}
                 {newControlColumns >= MAX_NEW_CONTROLS && !showSubmissions && (
@@ -879,63 +882,54 @@ export default function Home() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {activeSubmissions.map((submission) => { // Removed subIndex
-                                                // Ensure activeQuestion and its methodologicalConsiderations are available
-                                                if (!activeQuestion || !activeQuestion.methodologicalConsiderations) {
-                                                    // Render a message or skip if question data is missing for this submission
-                                                     // Adjust colSpan after removing Submission # column
-                                                    return (
-                                                        <tr key={`no-features-${submission._id}`}>
-                                                             <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
-                                                                  No methodological features found for this question.
-                                                             </td>
-                                                        </tr>
-                                                    );
-                                                }
-
-                                                // Destructure methodologicalConsiderations here and explicitly type it
-                                                const methodologicalConsiderations: MethodologicalConsideration[] = activeQuestion.methodologicalConsiderations;
-
-
-                                                // Loop through each methodological consideration for this submission
-                                                return methodologicalConsiderations.map((consideration, rowIndex) => (
-                                                    <tr key={`${submission._id}-${rowIndex}`}>
-                                                        {/* Removed Submission Number Cell */}
-                                                        {/* Methodological Feature Cell (Sticky) */}
-                                                        <td
-                                                            title={consideration.description}
-                                                             style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
-                                                        >
-                                                             {consideration.feature.toUpperCase()}
-                                                        </td>
-                                                        {/* Intervention Cell (Base) - Always "BASE" */}
-                                                         <td style={submittedTableCellStyle}>
-                                                             BASE
-                                                          </td>
-                                                        {/* Complete Control Cell - Get value from questions.json */}
-                                                         <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
-                                                            {consideration.option1.toUpperCase()}
-                                                          </td>
-                                                        {/* Dynamically added New Control Cells */}
-                                                        {/* Loop through the *maximum* number of columns, and display data if it exists for this submission */}
-                                                        {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => {
-                                                             const controlSelection = submission.newControlSelections[colIndex]?.[rowIndex];
-                                                            return (
-                                                                <td
-                                                                    key={`${submission._id}-${rowIndex}-${colIndex}-submitted`}
-                                                                    style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
-                                                                    title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
-                                                                >
-                                                                    {controlSelection?.value.toUpperCase() || '-'} {/* Display value or '-' if no data for this column/row */}
-                                                                    {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                                                                        <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
-                                                                    )}
-                                                                </td>
-                                                            );
-                                                        })}
+                                            {/* Adjusted formatting to remove whitespace issues */}
+                                            {activeSubmissions.map((submission) =>
+                                                !activeQuestion || !activeQuestion.methodologicalConsiderations ? (
+                                                    <tr key={`no-features-${submission._id}`}>
+                                                         <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
+                                                              No methodological features found for this question.
+                                                         </td>
                                                     </tr>
-                                                ));
-                                            })}
+                                                ) : (
+                                                    activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) =>
+                                                        <tr key={`${submission._id}-${rowIndex}`}>
+                                                            {/* Removed Submission Number Cell */}
+                                                            {/* Methodological Feature Cell (Sticky) */}
+                                                            <td
+                                                                title={consideration.description}
+                                                                 style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
+                                                            >
+                                                                 {consideration.feature.toUpperCase()}
+                                                            </td>
+                                                            {/* Intervention Cell (Base) - Always "BASE" */}
+                                                             <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Added styling */}
+                                                                 BASE
+                                                              </td>
+                                                            {/* Complete Control Cell - Get value from questions.json */}
+                                                             <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
+                                                                {consideration.option1.toUpperCase()}
+                                                              </td>
+                                                            {/* Dynamically added New Control Cells */}
+                                                            {/* Loop through the *maximum* number of columns, and display data if it exists for this submission */}
+                                                            {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => {
+                                                                 const controlSelection = submission.newControlSelections[colIndex]?.[rowIndex];
+                                                                return (
+                                                                    <td
+                                                                        key={`${submission._id}-${rowIndex}-${colIndex}-submitted`}
+                                                                        style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                                                                        title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                                                                    >
+                                                                        {controlSelection?.value.toUpperCase() || '-'} {/* Display value or '-' if no data for this column/row */}
+                                                                        {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                                                                            <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                                                                        )}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    )
+                                                )
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
