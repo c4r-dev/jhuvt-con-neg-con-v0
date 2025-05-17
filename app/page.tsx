@@ -879,7 +879,7 @@ export default function Home() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {activeSubmissions.map((submission, subIndex) => {
+                                            {activeSubmissions.map((submission) => { // Removed subIndex
                                                 // Ensure activeQuestion and its methodologicalConsiderations are available
                                                 if (!activeQuestion || !activeQuestion.methodologicalConsiderations) {
                                                     // Render a message or skip if question data is missing for this submission
@@ -900,7 +900,7 @@ export default function Home() {
                                                 // Loop through each methodological consideration for this submission
                                                 return methodologicalConsiderations.map((consideration, rowIndex) => (
                                                     <tr key={`${submission._id}-${rowIndex}`}>
-                                                        {/* Removed Submission # Cell */}
+                                                        {/* Removed Submission Number Cell */}
                                                         {/* Methodological Feature Cell (Sticky) */}
                                                         <td
                                                             title={consideration.description}
