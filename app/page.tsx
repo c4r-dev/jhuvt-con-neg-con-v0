@@ -900,7 +900,7 @@ export default function Home() {
                                                 // Loop through each methodological consideration for this submission
                                                 return methodologicalConsiderations.map((consideration, rowIndex) => (
                                                     <tr key={`${submission._id}-${rowIndex}`}>
-                                                        {/* Removed Submission Number Cell */}
+                                                        {/* Removed Submission # Cell */}
                                                         {/* Methodological Feature Cell (Sticky) */}
                                                         <td
                                                             title={consideration.description}
