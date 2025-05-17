@@ -252,13 +252,38 @@ export default function Home() {
   };
 
     // Function to handle the submission of data (placeholder)
-    const handleSubmit = () => {
-        // Here you would typically send the newControlSelections data to a server
-        console.log("Submitting New Control Data:", newControlSelections);
-        alert("New Control data submitted! (Check console for details)");
-        // You might want to add further logic here, like sending data via API
-    };
+    // Function to handle the submission of data
+    const handleSubmit = async () => { // Make the function async
+        const submissionData = {
+            questionId: selectedQuestionId,
+            newControlSelections: newControlSelections,
+        };
 
+        try {
+            const response = await fetch('/api/submit-control-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(submissionData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to submit data');
+            }
+
+            const result = await response.json();
+            console.log('Submission successful:', result.data);
+            alert("New Control data submitted successfully!");
+            // You might want to redirect the user or reset the form here
+             handleGoBackClick(); // Example: Go back to the question selection after submission
+
+        } catch (error: any) {
+            console.error('Error submitting data:', error);
+            alert(`Error submitting data: ${error.message}`);
+        }
+    };
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
