@@ -7,10 +7,10 @@ interface IControlSelection {
   description: string;
 }
 
-// Interface for the Submission document
+// Interface for the Submission document (now representing a single new control column)
 interface ISubmission extends Document {
   questionId: number;
-  newControlSelections: IControlSelection[][];
+  newControlSelections: IControlSelection[]; // Changed to array of IControlSelection
   createdAt: Date;
 }
 
@@ -21,12 +21,11 @@ const ControlSelectionSchema: Schema = new Schema({
 
 const SubmissionSchema: Schema = new Schema({
   questionId: { type: Number, required: true },
-  newControlSelections: [[ControlSelectionSchema]], // Array of arrays using the sub-schema
+  newControlSelections: [ControlSelectionSchema], // Changed to array of ControlSelectionSchema
   createdAt: { type: Date, default: Date.now },
 });
 
 // Use existing model if already defined, otherwise define a new one
-// Specify the custom collection name in the third argument of mongoose.model()
-const Submission = mongoose.models.Submission || mongoose.model<ISubmission>('Submission', SubmissionSchema, 'negativecontrolssubmissions'); // <-- Added custom collection name here
+const Submission = mongoose.models.Submission || mongoose.model<ISubmission>('Submission', SubmissionSchema, 'negativecontrolssubmissions'); // Keep custom collection name
 
 export default Submission;

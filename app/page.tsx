@@ -31,7 +31,7 @@ interface ControlSelection {
 interface FetchedSubmission {
     _id: string; // MongoDB document ID
     questionId: number;
-    newControlSelections: ControlSelection[][];
+    newControlSelections: ControlSelection[]; // Each document is one column
     createdAt: string; // Or Date, depending on how you want to handle it on the client
 }
 
@@ -318,39 +318,49 @@ export default function Home() {
 
     // Function to handle the submission of data
     const handleSubmit = async () => { // Make the function async
-        const submissionData = {
-            questionId: selectedQuestionId, // Include the selected question ID
-            newControlSelections: newControlSelections,
-        };
+        // Iterate through each new control column and send a separate submission
+        for (const controlColumn of newControlSelections) {
+             const submissionData = {
+                questionId: selectedQuestionId, // Include the selected question ID
+                newControlSelections: controlColumn, // Send only one column's data
+            };
 
-        try {
-            const response = await fetch('/api/submit-control-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(submissionData),
-            });
+            try {
+                const response = await fetch('/api/submit-control-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(submissionData),
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit data');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    // Log or handle error for individual submission, but maybe don't halt the loop entirely
+                    console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
+                     // Optionally break or continue based on desired error handling
+                     // For now, we'll let it continue trying other columns
+                     // throw new Error(errorData.error || 'Failed to submit a control column'); // If you want to stop on first error
+                } else {
+                    const result = await response.json();
+                     console.log('Control column submitted successfully:', result.data);
+                }
+
+
+            } catch (error: unknown) {
+                 console.error('Error submitting a control column:', error);
+                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during column submission.';
+                 alert(`Error submitting a control column: ${errorMessage}`);
+                 // Optionally break or continue
             }
-
-            const result = await response.json();
-            console.log('Submission successful:', result.data);
-            // Removed the alert("New Control data submitted successfully!");
-
-            // After successful submission, show the submissions box and trigger fetch
-            setShowSubmissions(true);
-            // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
-
-        } catch (error: unknown) {
-            console.error('Error submitting data:', error);
-             // Safely access error message
-            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during submission.';
-            alert(`Error submitting data: ${errorMessage}`);
         }
+
+        // After attempting to submit all columns, update UI state
+        setShowSubmissions(true);
+        // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
+         alert("Submission process completed. Check console for details on individual columns."); // Inform user process finished
+
+
     };
 
 
@@ -650,7 +660,7 @@ export default function Home() {
                         </div>
                          <div style={{ marginBottom: '15px', color: '#333' }}>
                             <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
-                            <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}>
+                            <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#555' }}>
                               The interactive table below will update to allow you to consider how different components are handled across treatments.
                             </p>
                           </div>
@@ -883,52 +893,43 @@ export default function Home() {
                                         </thead>
                                         <tbody>
                                             {/* Adjusted formatting to remove whitespace issues */}
-                                            {activeSubmissions.map((submission) =>
-                                                !activeQuestion || !activeQuestion.methodologicalConsiderations ? (
-                                                    <tr key={`no-features-${submission._id}`}>
-                                                         <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
-                                                              No methodological features found for this question.
-                                                         </td>
-                                                    </tr>
-                                                ) : (
-                                                    activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) =>
-                                                        <tr key={`${submission._id}-${rowIndex}`}>
-                                                            {/* Removed Submission Number Cell */}
-                                                            {/* Methodological Feature Cell (Sticky) */}
+                                            {/* Outer loop iterates through methodological considerations (rows) */}
+                                            {activeQuestion?.methodologicalConsiderations && activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) =>
+                                                <tr key={`row-${activeQuestionTabId}-${rowIndex}`}> {/* Key for each row based on question tab and row index */}
+                                                    {/* Methodological Feature Cell (Sticky) */}
+                                                    <td
+                                                        title={consideration.description}
+                                                         style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
+                                                    >
+                                                         {consideration.feature.toUpperCase()}
+                                                    </td>
+                                                    {/* Intervention Cell (Base) - Always "BASE" */}
+                                                     <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Added styling */}
+                                                         BASE
+                                                      </td>
+                                                    {/* Complete Control Cell - Get value from questions.json */}
+                                                     <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
+                                                        {consideration.option1.toUpperCase()}
+                                                      </td>
+                                                    {/* Dynamically added New Control Cells - Loop through submissions (columns) */}
+                                                    {activeSubmissions.map((submission) => { // Loop through each submitted column for this question
+                                                         // *** CORRECTED LINE BELOW ***
+                                                         const controlSelection = submission.newControlSelections[rowIndex]; // Access data at the current row index
+                                                        return (
                                                             <td
-                                                                title={consideration.description}
-                                                                 style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
+                                                                key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
+                                                                style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                                                                title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
                                                             >
-                                                                 {consideration.feature.toUpperCase()}
+                                                                {/* *** CORRECTED ACCESS AND FALLBACK BELOW *** */}
+                                                                {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
+                                                                {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                                                                    <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                                                                )}
                                                             </td>
-                                                            {/* Intervention Cell (Base) - Always "BASE" */}
-                                                             <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Added styling */}
-                                                                 BASE
-                                                              </td>
-                                                            {/* Complete Control Cell - Get value from questions.json */}
-                                                             <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
-                                                                {consideration.option1.toUpperCase()}
-                                                              </td>
-                                                            {/* Dynamically added New Control Cells */}
-                                                            {/* Loop through the *maximum* number of columns, and display data if it exists for this submission */}
-                                                            {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => {
-                                                                 const controlSelection = submission.newControlSelections[colIndex]?.[rowIndex];
-                                                                return (
-                                                                    <td
-                                                                        key={`${submission._id}-${rowIndex}-${colIndex}-submitted`}
-                                                                        style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
-                                                                        title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
-                                                                    >
-                                                                        {controlSelection?.value.toUpperCase() || '-'} {/* Display value or '-' if no data for this column/row */}
-                                                                        {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                                                                            <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
-                                                                        )}
-                                                                    </td>
-                                                                );
-                                                            })}
-                                                        </tr>
-                                                    )
-                                                )
+                                                        );
+                                                    })}
+                                                </tr>
                                             )}
                                         </tbody>
                                     </table>
