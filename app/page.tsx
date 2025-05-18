@@ -675,7 +675,7 @@ export default function Home() {
                   {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
                       <thead>
-                        <tr> {/* Adjusted formatting */}
+                        <tr>
                           <th style={{ // Styled Header for Methodological Feature - Sticky, matches common header style
                               ...commonHeaderStyle,
                               position: 'sticky',
