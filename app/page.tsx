@@ -551,50 +551,7 @@ export default function Home() {
         return Math.max(max, submission.newControlSelections.length);
     }, 0);
 
-    // Generate table rows for submitted data
-    // Note: This part was kept as is for now, the issue likely lies in the JSX rendering itself
-    // where whitespace is introduced between tags. The fix addresses the JSX formatting.
-    const submittedTableRows = activeQuestion?.methodologicalConsiderations ? (
-        activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) => { // Outer loop iterates through rows
-            // Generate cells for this row across all submissions (columns)
-            const submissionCells = activeSubmissions.map((submission) => { // Inner loop iterates through submissions (columns)
-                 const controlSelection = submission.newControlSelections[rowIndex]; // Access data at the current row index
-
-                return (
-                     <td
-                         key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
-                         style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
-                         title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
-                     >
-                         {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
-                         {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                             <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
-                         )}
-                     </td>
-                 );
-            });
-
-            return ( // Explicitly return the table row
-                <tr key={`row-${activeQuestionTabId}-${rowIndex}`}>
-                    <td // Methodological Feature Cell (Sticky)
-                        title={consideration.description}
-                         style={{...submittedStickyFeatureCellStyle, left: 0}}
-                    >
-                         {consideration.feature.toUpperCase()}
-                    </td>
-                    <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Intervention Cell (Base) - Always "BASE" */}
-                         BASE
-                      </td>
-                    <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}> {/* Complete Control Cell - Get value from questions.json */}
-                        {consideration.option1.toUpperCase()}
-                      </td>
-                    {submissionCells} {/* Dynamically added New Control Cells (Spread the generated cells) */}
-                </tr>
-            );
-        })
-    ) : (
-        [] // Return an empty array if methodologicalConsiderations is undefined
-    );
+    // Removed the unused 'submittedTableRows' variable definition
 
 
   return (
