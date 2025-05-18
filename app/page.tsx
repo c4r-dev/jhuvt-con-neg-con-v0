@@ -358,7 +358,7 @@ export default function Home() {
         // After attempting to submit all columns, update UI state
         setShowSubmissions(true);
         // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
-         alert("Submission process completed. Check console for details on individual columns."); // Inform user process finished
+        //  alert("Submission process completed. Check console for details on individual columns."); // Inform user process finished
 
 
     };
@@ -877,7 +877,7 @@ export default function Home() {
                                                 <th style={{...commonHeaderStyle, minWidth: '150px'}}>INTERVENTION</th> {/* Header for Intervention (Base) */}
                                                 <th style={{...commonHeaderStyle, minWidth: '100px'}}>COMPLETE</th>{/* Header for Complete Control */}
                                                 {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
-                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>SUBMISSION {colIndex + 1}</th>
+                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>SUBMISSION</th>
                                                 ))}
                                             </tr>{/* Adjusted formatting */}
                                         </thead>
