@@ -551,6 +551,53 @@ export default function Home() {
         return Math.max(max, submission.newControlSelections.length);
     }, 0);
 
+    // Generate table rows for submitted data
+    const submittedTableRows = activeQuestion?.methodologicalConsiderations ? (
+        activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) => { // Outer loop iterates through rows
+            // Generate cells for this row across all submissions (columns)
+            const submissionCells = activeSubmissions.map((submission) => { // Inner loop iterates through submissions (columns)
+                 const controlSelection = submission.newControlSelections[rowIndex]; // Access data at the current row index
+
+                return (
+                     <td
+                         key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
+                         style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                         title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                     >
+                         {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
+                         {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                             <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                         )}
+                     </td>
+                 );
+            });
+
+            return ( // Explicitly return the table row
+                <tr key={`row-${activeQuestionTabId}-${rowIndex}`}>
+                    {/* Methodological Feature Cell (Sticky) */}
+                    <td
+                        title={consideration.description}
+                         style={{...submittedStickyFeatureCellStyle, left: 0}}
+                    >
+                         {consideration.feature.toUpperCase()}
+                    </td>
+                    {/* Intervention Cell (Base) - Always "BASE" */}
+                     <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}>
+                         BASE
+                      </td>
+                    {/* Complete Control Cell - Get value from questions.json */}
+                     <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
+                        {consideration.option1.toUpperCase()}
+                      </td>
+                    {/* Dynamically added New Control Cells (Spread the generated cells) */}
+                    {submissionCells}
+                </tr>
+            );
+        })
+    ) : (
+        [] // Return an empty array if methodologicalConsiderations is undefined
+    );
+
 
   return (
     // Reduced top margin for less whitespace before the first heading
@@ -660,7 +707,7 @@ export default function Home() {
                         </div>
                          <div style={{ marginBottom: '15px', color: '#333' }}>
                             <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
-                            <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#555' }}>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}> {/* Removed bottom margin */}
                               The interactive table below will update to allow you to consider how different components are handled across treatments.
                             </p>
                           </div>
@@ -818,7 +865,7 @@ export default function Home() {
 
                 {/* Message when validation fails but button isn't shown yet (Hidden after submissions are shown) */}
                  {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
-                    <p style={{ textAlign: 'center', color: 'orange', marginTop: '10px' }}>
+                    <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
                          Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
                      </p>
                  )}
@@ -887,49 +934,61 @@ export default function Home() {
                                                 {/* Dynamically added Headers for New Controls */}
                                                 {/* Create a header for each *potential* new control column based on the max found */}
                                                 {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
-                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>NEW CONTROL {colIndex + 1}</th>
+                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>SUBMISSION {colIndex + 1}</th>
                                                 ))}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {/* Adjusted formatting to remove whitespace issues */}
-                                            {/* Outer loop iterates through methodological considerations (rows) */}
-                                            {activeQuestion?.methodologicalConsiderations && activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) =>
-                                                <tr key={`row-${activeQuestionTabId}-${rowIndex}`}> {/* Key for each row based on question tab and row index */}
-                                                    {/* Methodological Feature Cell (Sticky) */}
-                                                    <td
-                                                        title={consideration.description}
-                                                         style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
-                                                    >
-                                                         {consideration.feature.toUpperCase()}
-                                                    </td>
-                                                    {/* Intervention Cell (Base) - Always "BASE" */}
-                                                     <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Added styling */}
-                                                         BASE
-                                                      </td>
-                                                    {/* Complete Control Cell - Get value from questions.json */}
-                                                     <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
-                                                        {consideration.option1.toUpperCase()}
-                                                      </td>
-                                                    {/* Dynamically added New Control Cells - Loop through submissions (columns) */}
-                                                    {activeSubmissions.map((submission) => { // Loop through each submitted column for this question
-                                                         // *** CORRECTED LINE BELOW ***
+                                            {/* Generate table rows based on methodological considerations */}
+                                            {activeQuestion?.methodologicalConsiderations ? (
+                                                activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) => { // Outer loop iterates through rows
+                                                    // Generate cells for this row across all submissions (columns)
+                                                    const submissionCells = activeSubmissions.map((submission) => { // Inner loop iterates through submissions (columns)
                                                          const controlSelection = submission.newControlSelections[rowIndex]; // Access data at the current row index
+
                                                         return (
+                                                             <td
+                                                                 key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
+                                                                 style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                                                                 title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                                                             >
+                                                                 {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
+                                                                 {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                                                                     <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                                                                 )}
+                                                             </td>
+                                                         );
+                                                    });
+
+                                                    return ( // Explicitly return the table row
+                                                        <tr key={`row-${activeQuestionTabId}-${rowIndex}`}>
+                                                            {/* Methodological Feature Cell (Sticky) */}
                                                             <td
-                                                                key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
-                                                                style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
-                                                                title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                                                                title={consideration.description}
+                                                                 style={{...submittedStickyFeatureCellStyle, left: 0}}
                                                             >
-                                                                {/* *** CORRECTED ACCESS AND FALLBACK BELOW *** */}
-                                                                {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
-                                                                {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                                                                    <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
-                                                                )}
+                                                                 {consideration.feature.toUpperCase()}
                                                             </td>
-                                                        );
-                                                    })}
-                                                </tr>
+                                                            {/* Intervention Cell (Base) - Always "BASE" */}
+                                                             <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}>
+                                                                 BASE
+                                                              </td>
+                                                            {/* Complete Control Cell - Get value from questions.json */}
+                                                             <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
+                                                                {consideration.option1.toUpperCase()}
+                                                              </td>
+                                                            {/* Dynamically added New Control Cells (Spread the generated cells) */}
+                                                            {submissionCells}
+                                                        </tr>
+                                                    );
+                                                })
+                                            ) : (
+                                                /* Handle case where activeQuestion or methodologicalConsiderations is missing */
+                                                 <tr>
+                                                      <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
+                                                           No methodological features found for this question.
+                                                      </td>
+                                                 </tr>
                                             )}
                                         </tbody>
                                     </table>
