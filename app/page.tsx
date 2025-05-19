@@ -336,12 +336,14 @@ export default function Home() {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
+    // textTransform: 'uppercase', // Removed: will be applied selectively
   };
 
-  const tabButtonStyle: React.CSSProperties = {
-    ...newBaseButtonStyle,
-    padding: '8px 12px',
-    fontSize: '0.9rem',
+  const tabButtonStyle: React.CSSProperties = { // Base style for Question tabs
+    ...newBaseButtonStyle, // Inherits padding, border, borderRadius, cursor, fontSize from newBaseButtonStyle
+    padding: '8px 12px',   // Overrides padding for a smaller tab-like feel
+    fontSize: '0.9rem',    // Overrides fontSize for smaller text in tabs
+    // Specific styles like textTransform, color, backgroundColor, fontWeight will be applied dynamically
   };
 
   const infoBoxStyle: React.CSSProperties = {
@@ -436,7 +438,6 @@ export default function Home() {
     ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
     : [];
 
-  // Removed calculation of currentMaxSubmittedControlColumns as it's no longer needed by SubmissionsDisplay
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '20px auto 20px auto' }}>
@@ -457,9 +458,8 @@ export default function Home() {
                       marginBottom: '10px',
                       width: '100%',
                       textAlign: 'left',
-                      backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined),
-                      opacity: 1,
-                      cursor: 'pointer',
+                      backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined), // Active state for question selection
+                      // color will be default or browser default for buttons, unless active, then likely overridden by global button styles or purple background implies white text
                     }}
                   > {q.question} </button>
                 </li>
@@ -475,6 +475,7 @@ export default function Home() {
       {selectedQuestion && (
         <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
+          {/* ... other experiment details ... */}
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
             Take a moment to consider which variable will define our intervention, and which will define our measurement.
           </p>
@@ -568,14 +569,14 @@ export default function Home() {
                     <button
                       onClick={handleGoBackClick}
                       className="button"
-                      style={{ ...newBaseButtonStyle, marginRight: '10px' }}
+                      style={{ ...newBaseButtonStyle, marginRight: '10px' }} // Uses newBaseButtonStyle
                     >
                       START OVER
                     </button>
                     <button
                       onClick={handleAddControlColumn}
                       className="button"
-                      style={{ ...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer' }}
+                      style={{ ...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer' }} // Uses newBaseButtonStyle
                       disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions}
                     >
                       ADD NEW CONTROL
@@ -584,7 +585,7 @@ export default function Home() {
                       <button
                         onClick={handleSubmit}
                         className="button"
-                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }}
+                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }} // Uses newBaseButtonStyle
                       >
                         SUBMIT
                       </button>
@@ -619,15 +620,17 @@ export default function Home() {
                 {uniqueSubmissionQuestionIds.map(questionId => {
                   const questionForTab = questions.find(q => q.id === questionId);
                   const buttonText = questionForTab ? `Question ${questionForTab.id}` : `Question ${questionId}`;
+                  const isActive = activeQuestionTabId === questionId;
                   return (
                     <button
                       key={questionId}
                       onClick={() => setActiveQuestionTabId(questionId)}
                       style={{
-                        ...tabButtonStyle,
-                        backgroundColor: activeQuestionTabId === questionId ? '#6F00FF' : '#e0e0e0',
-                        color: activeQuestionTabId === questionId ? 'white' : 'black',
-                        fontWeight: activeQuestionTabId === questionId ? 'bold' : 'normal',
+                        ...tabButtonStyle, // Base for padding, font-size, border-radius etc. from newBaseButtonStyle
+                        textTransform: 'uppercase', // Apply uppercase transformation
+                        backgroundColor: isActive ? '#6F00FF' : '#e0e0e0', // Purple when active, grey otherwise
+                        color: isActive ? 'white' : 'black', // White text when active, black otherwise
+                        fontWeight: isActive ? 'bold' : 'normal',
                       }}
                     >
                       {buttonText}
@@ -640,7 +643,6 @@ export default function Home() {
                 <SubmissionsDisplay
                   activeQuestion={activeQuestion}
                   activeSubmissions={activeSubmissions}
-                  // maxSubmittedControlColumns prop removed
                   commonHeaderStyle={commonHeaderStyle}
                   submittedTableCellStyle={submittedTableCellStyle}
                   submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
