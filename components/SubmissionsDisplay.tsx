@@ -2,15 +2,16 @@
 'use client';
 
 import React from 'react';
-import { Question, FetchedSubmission } from '@/types'; // Assuming types are in @/types
+import { Question, FetchedSubmission } from '@/types';
+
+const MAX_NEW_CONTROL_COLUMNS_TO_DISPLAY = 10;
 
 interface SubmissionsDisplayProps {
   activeQuestion: Question | undefined;
   activeSubmissions: FetchedSubmission[];
-  maxSubmittedControlColumns: number;
   commonHeaderStyle: React.CSSProperties;
   submittedTableCellStyle: React.CSSProperties;
-  submittedStickyFeatureCellStyle: React.CSSProperties;
+  submittedStickyFeatureCellStyle: React.CSSProperties; // This style should already include cursor: 'help'
   firstColumnWidth: string;
   newBaseButtonStyle: React.CSSProperties;
   getCompleteCellStyle: (value: string) => React.CSSProperties;
@@ -20,7 +21,6 @@ interface SubmissionsDisplayProps {
 const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   activeQuestion,
   activeSubmissions,
-  maxSubmittedControlColumns,
   commonHeaderStyle,
   submittedTableCellStyle,
   submittedStickyFeatureCellStyle,
@@ -33,6 +33,10 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
     return <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Loading question details...</p>;
   }
 
+  const actualNewControlColumnsToDisplay = Math.min(activeSubmissions.length, MAX_NEW_CONTROL_COLUMNS_TO_DISPLAY);
+  const submissionsToDisplay = activeSubmissions.slice(0, actualNewControlColumnsToDisplay);
+  const colSpanForNoFeatures = 3 + actualNewControlColumnsToDisplay;
+
   return (
     <>
       <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
@@ -44,12 +48,12 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
             <thead>
               <tr>
-                <th style={{ ...commonHeaderStyle, minWidth: firstColumnWidth, position: 'sticky', left: 0, zIndex: 2 }}>METHODOLOGICAL FEATURE</th>
-                <th style={{ ...commonHeaderStyle, minWidth: '150px' }}>INTERVENTION</th>
-                <th style={{ ...commonHeaderStyle, minWidth: '100px' }}>COMPLETE</th>
-                {/* Render headers for new control columns based on maxSubmittedControlColumns */}
-                {/* We use maxSubmittedControlColumns to ensure consistent table structure if some submissions have fewer controls than others */}
-                {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
+                <th style={{ ...commonHeaderStyle, ...submittedStickyFeatureCellStyle, minWidth: firstColumnWidth, left: 0, zIndex: 2 }}> {/* Ensure sticky styles are applied and cursor:help is from submittedStickyFeatureCellStyle */}
+                  METHODOLOGICAL FEATURE
+                </th>
+                <th style={commonHeaderStyle}>INTERVENTION</th>
+                <th style={commonHeaderStyle}>COMPLETE</th>
+                {[...Array(actualNewControlColumnsToDisplay)].map((_, colIndex) => (
                   <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>NEW CONTROL</th>
                 ))}
               </tr>
@@ -57,7 +61,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
             <tbody>
               {!activeQuestion.methodologicalConsiderations || activeQuestion.methodologicalConsiderations.length === 0 ? (
                 <tr>
-                  <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
+                  <td colSpan={colSpanForNoFeatures} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
                     No methodological features found for this question.
                   </td>
                 </tr>
@@ -66,7 +70,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                   <tr key={`row-${activeQuestion.id}-${rowIndex}`}>
                     <td
                       title={consideration.description}
-                      style={{ ...submittedStickyFeatureCellStyle, left: 0 }} // Ensure 'left' is explicitly set for stickiness
+                      style={submittedStickyFeatureCellStyle} // This style object should contain cursor: 'help'
                     >
                       {consideration.feature.toUpperCase()}
                     </td>
@@ -76,36 +80,28 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                     <td style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1) }}>
                       {consideration.option1.toUpperCase()}
                     </td>
-                    {/* Map through submissions to create columns.
-                        Each submission contributes one column of "NEW CONTROL" data for the current methodological consideration (row)
-                        The outer loop determines the max number of columns to display (maxSubmittedControlColumns)
-                        The inner loop iterates through the actual submissions.
-                    */}
-                    {activeSubmissions.map((submission, submissionIndex) => {
-                      // Ensure we don't try to render more columns than maxSubmittedControlColumns from submissions
-                      if (submissionIndex < maxSubmittedControlColumns) {
-                        const controlSelection = submission.newControlSelections[rowIndex];
-                        return (
-                          <td
-                            key={`${submission._id}-${rowIndex}-submitted-${submissionIndex}`}
-                            style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }}
-                            title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''}
-                          >
-                            {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'}
-                            {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                              <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span>
-                            )}
-                          </td>
-                        );
-                      }
-                      return null;
+                    {submissionsToDisplay.map((submission, submissionIndex) => {
+                      const controlSelection = submission.newControlSelections[rowIndex];
+                      const cellTitle = controlSelection?.value === 'DIFFERENT' && controlSelection?.description
+                                        ? controlSelection.description
+                                        : (controlSelection?.value || ''); // Title is description or value
+
+                      const cellStyle: React.CSSProperties = {
+                        ...submittedTableCellStyle,
+                        ...getCompleteCellStyle(controlSelection?.value || ''),
+                        cursor: 'help', // Add help cursor as title is always present
+                      };
+
+                      return (
+                        <td
+                          key={`${submission._id}-${rowIndex}-submitted-${submissionIndex}`}
+                          style={cellStyle}
+                          title={cellTitle}
+                        >
+                          {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'}
+                        </td>
+                      );
                     })}
-                    {/* Fill remaining columns if fewer submissions than maxSubmittedControlColumns to maintain table structure */}
-                    {activeSubmissions.length < maxSubmittedControlColumns &&
-                      [...Array(maxSubmittedControlColumns - activeSubmissions.length)].map((_, emptyColIndex) => (
-                        <td key={`empty-submitted-cell-${rowIndex}-${activeSubmissions.length + emptyColIndex}`} style={submittedTableCellStyle}>-</td>
-                      ))
-                    }
                   </tr>
                 ))
               )}
@@ -116,11 +112,10 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
         <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
       )}
 
-      {/* START OVER Button specific to this view */}
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <button
           onClick={onGoBackClick}
-          className="button" // Assuming 'button' is a global class or replace with appropriate styling
+          className="button"
           style={{
             ...newBaseButtonStyle,
             marginBottom: '0'

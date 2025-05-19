@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
-import SubmissionsDisplay from '@/components/SubmissionsDisplay'; // Import the new component
+import SubmissionsDisplay from '@/components/SubmissionsDisplay';
 import {
   Question,
   ControlSelection,
@@ -436,12 +436,7 @@ export default function Home() {
     ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
     : [];
 
-  // Calculate maxSubmittedControlColumns based on the actual data in activeSubmissions for the current tab
-  // This ensures the table is sized correctly for the specific question's submissions.
-  const currentMaxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
-    return Math.max(max, submission.newControlSelections.length);
-  }, 0);
-
+  // Removed calculation of currentMaxSubmittedControlColumns as it's no longer needed by SubmissionsDisplay
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '20px auto 20px auto' }}>
@@ -622,7 +617,7 @@ export default function Home() {
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
                 {uniqueSubmissionQuestionIds.map(questionId => {
-                  const questionForTab = questions.find(q => q.id === questionId); // Renamed to avoid conflict
+                  const questionForTab = questions.find(q => q.id === questionId);
                   const buttonText = questionForTab ? `Question ${questionForTab.id}` : `Question ${questionId}`;
                   return (
                     <button
@@ -645,7 +640,7 @@ export default function Home() {
                 <SubmissionsDisplay
                   activeQuestion={activeQuestion}
                   activeSubmissions={activeSubmissions}
-                  maxSubmittedControlColumns={currentMaxSubmittedControlColumns} // Use current calculation
+                  // maxSubmittedControlColumns prop removed
                   commonHeaderStyle={commonHeaderStyle}
                   submittedTableCellStyle={submittedTableCellStyle}
                   submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
@@ -655,7 +650,7 @@ export default function Home() {
                   onGoBackClick={handleGoBackClick}
                 />
               ) : (
-                uniqueSubmissionQuestionIds.length > 0 && ( // Show this only if there are tabs but none selected
+                uniqueSubmissionQuestionIds.length > 0 && (
                     <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
                         Select a question tab above to view submissions.
                     </p>
