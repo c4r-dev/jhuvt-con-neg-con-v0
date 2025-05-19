@@ -264,8 +264,8 @@ export default function Home() {
           const errorData = await response.json();
           console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
         } else {
-          const result = await response.json();
-          // console.log('Control column submitted successfully:', result.data); // This line is now commented out
+          const _result = await response.json(); // Changed 'result' to '_result'
+          // console.log('Control column submitted successfully:', _result.data);
         }
       } catch (error: unknown) {
         console.error('Error submitting a control column:', error);
@@ -336,14 +336,12 @@ export default function Home() {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
-    // textTransform: 'uppercase', // Removed: will be applied selectively
   };
 
-  const tabButtonStyle: React.CSSProperties = { // Base style for Question tabs
-    ...newBaseButtonStyle, // Inherits padding, border, borderRadius, cursor, fontSize from newBaseButtonStyle
-    padding: '8px 12px',   // Overrides padding for a smaller tab-like feel
-    fontSize: '0.9rem',    // Overrides fontSize for smaller text in tabs
-    // Specific styles like textTransform, color, backgroundColor, fontWeight will be applied dynamically
+  const tabButtonStyle: React.CSSProperties = {
+    ...newBaseButtonStyle,
+    padding: '8px 12px',
+    fontSize: '0.9rem',
   };
 
   const infoBoxStyle: React.CSSProperties = {
@@ -458,8 +456,7 @@ export default function Home() {
                       marginBottom: '10px',
                       width: '100%',
                       textAlign: 'left',
-                      backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined), // Active state for question selection
-                      // color will be default or browser default for buttons, unless active, then likely overridden by global button styles or purple background implies white text
+                      backgroundColor: (selectedQuestionId === q.id ? '#6F00FF' : undefined),
                     }}
                   > {q.question} </button>
                 </li>
@@ -475,7 +472,6 @@ export default function Home() {
       {selectedQuestion && (
         <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
           <h3>Experiment Details: {selectedQuestion.question}</h3>
-          {/* ... other experiment details ... */}
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
             Take a moment to consider which variable will define our intervention, and which will define our measurement.
           </p>
@@ -569,14 +565,14 @@ export default function Home() {
                     <button
                       onClick={handleGoBackClick}
                       className="button"
-                      style={{ ...newBaseButtonStyle, marginRight: '10px' }} // Uses newBaseButtonStyle
+                      style={{ ...newBaseButtonStyle, marginRight: '10px' }}
                     >
                       START OVER
                     </button>
                     <button
                       onClick={handleAddControlColumn}
                       className="button"
-                      style={{ ...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer' }} // Uses newBaseButtonStyle
+                      style={{ ...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer' }}
                       disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions}
                     >
                       ADD NEW CONTROL
@@ -585,7 +581,7 @@ export default function Home() {
                       <button
                         onClick={handleSubmit}
                         className="button"
-                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }} // Uses newBaseButtonStyle
+                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }}
                       >
                         SUBMIT
                       </button>
@@ -626,10 +622,10 @@ export default function Home() {
                       key={questionId}
                       onClick={() => setActiveQuestionTabId(questionId)}
                       style={{
-                        ...tabButtonStyle, // Base for padding, font-size, border-radius etc. from newBaseButtonStyle
-                        textTransform: 'uppercase', // Apply uppercase transformation
-                        backgroundColor: isActive ? '#6F00FF' : '#e0e0e0', // Purple when active, grey otherwise
-                        color: isActive ? 'white' : 'black', // White text when active, black otherwise
+                        ...tabButtonStyle,
+                        textTransform: 'uppercase',
+                        backgroundColor: isActive ? '#6F00FF' : '#e0e0e0',
+                        color: isActive ? 'white' : 'black',
                         fontWeight: isActive ? 'bold' : 'normal',
                       }}
                     >
