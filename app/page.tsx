@@ -265,7 +265,7 @@ export default function Home() {
           console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
         } else {
           const result = await response.json();
-          console.log('Control column submitted successfully:', result.data);
+          // console.log('Control column submitted successfully:', result.data); // This line is now commented out
         }
       } catch (error: unknown) {
         console.error('Error submitting a control column:', error);
