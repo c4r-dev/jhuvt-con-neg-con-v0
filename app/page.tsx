@@ -944,8 +944,7 @@ export default function Home() {
                   className="button"
                   style={{
                     ...newBaseButtonStyle,
-                    backgroundColor: '#dc3545', // A common color for reset/danger actions
-                    color: 'white',
+                    marginBottom: '0'
                   }}
                 >
                   START OVER
@@ -956,31 +955,34 @@ export default function Home() {
           )}
 
         </div>
-      )}
+      )
+      }
 
       {/* Description Modal */}
-      {isModalOpen && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h4>Describe the Difference</h4>
-            <textarea
-              style={modalInputStyle}
-              value={modalDescription}
-              onChange={(e) => setModalDescription(e.target.value)}
-              placeholder="Enter description here..."
-              required // Mark as required
-            />
-            <div style={modalButtonContainerStyle}>
-              <button onClick={handleModalCancel} style={{ ...modalButtonStyle, backgroundColor: '#ccc', color: 'black' }}>
-                Cancel
-              </button>
-              <button onClick={handleModalSave} style={{ ...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white' }}>
-                Save
-              </button>
+      {
+        isModalOpen && (
+          <div style={modalOverlayStyle}>
+            <div style={modalContentStyle}>
+              <h4>Describe the Difference</h4>
+              <textarea
+                style={modalInputStyle}
+                value={modalDescription}
+                onChange={(e) => setModalDescription(e.target.value)}
+                placeholder="Enter description here..."
+                required // Mark as required
+              />
+              <div style={modalButtonContainerStyle}>
+                <button onClick={handleModalCancel} style={{ ...modalButtonStyle, backgroundColor: '#ccc', color: 'black' }}>
+                  Cancel
+                </button>
+                <button onClick={handleModalSave} style={{ ...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white' }}>
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
