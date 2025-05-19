@@ -937,6 +937,21 @@ export default function Home() {
                 <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Select a question tab above to view submissions.</p>
               )}
 
+              {/* START OVER Button (Added Here) */}
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <button
+                  onClick={handleGoBackClick}
+                  className="button"
+                  style={{
+                    ...newBaseButtonStyle,
+                    backgroundColor: '#dc3545', // A common color for reset/danger actions
+                    color: 'white',
+                  }}
+                >
+                  START OVER
+                </button>
+              </div>
+
             </div>
           )}
 

@@ -29,10 +29,10 @@ interface ControlSelection {
 
 // Interface for the fetched Submission data (matching the structure returned by the API)
 interface FetchedSubmission {
-    _id: string; // MongoDB document ID
-    questionId: number;
-    newControlSelections: ControlSelection[][];
-    createdAt: string; // Or Date, depending on how you want to handle it on the client
+  _id: string; // MongoDB document ID
+  questionId: number;
+  newControlSelections: ControlSelection[]; // Each document is one column
+  createdAt: string; // Or Date, depending on how you want to handle it on the client
 }
 
 
@@ -88,44 +88,44 @@ export default function Home() {
     fetchQuestions();
   }, []);
 
-    // New effect to fetch last submissions when showSubmissions becomes true
-    useEffect(() => {
-        if (showSubmissions) {
-            const fetchLastSubmissions = async () => {
-                try {
-                    const response = await fetch('/api/get-submissions');
-                    if (!response.ok) {
-                         const errorData = await response.json();
-                         throw new Error(errorData.error || 'Failed to fetch last submissions');
-                    }
-                    const result = await response.json();
-                    setLastSubmissions(result.data);
-                     // Set the first question with submissions as the active tab by default
-                     if (result.data.length > 0) {
-                         const uniqueQuestionIds: number[] = Array.from(new Set(result.data.map((sub: FetchedSubmission) => sub.questionId as number))); // Explicitly type array and cast elements
-                         if (uniqueQuestionIds.length > 0) {
-                             setActiveQuestionTabId(uniqueQuestionIds[0]);
-                         }
-                     }
-                } catch (error: unknown) {
-                     console.error('Error fetching last submissions:', error);
-                    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
-                    alert(`Error fetching last submissions: ${errorMessage}`);
-                }
-            };
-            fetchLastSubmissions();
+  // New effect to fetch last submissions when showSubmissions becomes true
+  useEffect(() => {
+    if (showSubmissions) {
+      const fetchLastSubmissions = async () => {
+        try {
+          const response = await fetch('/api/get-submissions');
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch last submissions');
+          }
+          const result = await response.json();
+          setLastSubmissions(result.data);
+          // Set the first question with submissions as the active tab by default
+          if (result.data.length > 0) {
+            const uniqueQuestionIds: number[] = Array.from(new Set(result.data.map((sub: FetchedSubmission) => sub.questionId as number))); // Explicitly type array and cast elements
+            if (uniqueQuestionIds.length > 0) {
+              setActiveQuestionTabId(uniqueQuestionIds[0]);
+            }
+          }
+        } catch (error: unknown) {
+          console.error('Error fetching last submissions:', error);
+          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
+          alert(`Error fetching last submissions: ${errorMessage}`);
         }
-    }, [showSubmissions]); // Dependency on showSubmissions state
+      };
+      fetchLastSubmissions();
+    }
+  }, [showSubmissions]); // Dependency on showSubmissions state
 
-    // Effect to scroll to the submissions box when submissions are loaded and visible
-    useEffect(() => {
-        if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
-            // Use a small timeout to allow the DOM to update with fetched data
-             setTimeout(() => {
-                submissionsBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-             }, 100); // Adjust delay if needed
-        }
-    }, [showSubmissions, lastSubmissions]); // Dependencies on showSubmissions and lastSubmissions
+  // Effect to scroll to the submissions box when submissions are loaded and visible
+  useEffect(() => {
+    if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
+      // Use a small timeout to allow the DOM to update with fetched data
+      setTimeout(() => {
+        submissionsBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100); // Adjust delay if needed
+    }
+  }, [showSubmissions, lastSubmissions]); // Dependencies on showSubmissions and lastSubmissions
 
 
   const handleQuestionSelection = (id: number) => {
@@ -133,7 +133,7 @@ export default function Home() {
     // Scroll to the bottom after selecting a question
     // Use a small timeout to allow the DOM to update before scrolling
     setTimeout(() => {
-        window.scrollTo(0, document.body.scrollHeight);
+      window.scrollTo(0, document.body.scrollHeight);
     }, 50); // Adjust timeout if needed
   };
 
@@ -146,7 +146,7 @@ export default function Home() {
     // Scroll to the bottom after setting selectionLocked to true
     // Use a small timeout to allow the DOM to update before scrolling
     setTimeout(() => {
-        window.scrollTo(0, document.body.scrollHeight);
+      window.scrollTo(0, document.body.scrollHeight);
     }, 100); // Adjust timeout if needed
   };
 
@@ -158,81 +158,81 @@ export default function Home() {
     setLastSubmissions([]); // Clear fetched submissions
     setShowSubmissions(false); // Hide submissions box
     setActiveQuestionTabId(null); // Reset active tab
-     // Optionally scroll to top when going back
-     window.scrollTo(0, 0);
+    // Optionally scroll to top when going back
+    window.scrollTo(0, 0);
   };
 
   const handleAddControlColumn = () => {
-      // Only add if the limit has not been reached and not in submissions view
-      if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
-          setNewControlColumns(prevCount => prevCount + 1);
-          // Initialize selections for the new column with an object { value: '', description: '' }
-          setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
-              const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
-              return [...prevSelections, newColumn];
-          });
+    // Only add if the limit has not been reached and not in submissions view
+    if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
+      setNewControlColumns(prevCount => prevCount + 1);
+      // Initialize selections for the new column with an object { value: '', description: '' }
+      setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+        const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
+        return [...prevSelections, newColumn];
+      });
 
-          // Scroll the table wrapper to the right AND the page to the bottom after adding a column
-          // Use setTimeout to allow DOM to update and column/page height to be rendered
-          setTimeout(() => {
-            if (tableWrapperRef.current) {
-              tableWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollWidth;
-            }
-            window.scrollTo(0, document.body.scrollHeight); // Scroll page to the bottom
-          }, 50); // Small delay, adjust if necessary
-      }
+      // Scroll the table wrapper to the right AND the page to the bottom after adding a column
+      // Use setTimeout to allow DOM to update and column/page height to be rendered
+      setTimeout(() => {
+        if (tableWrapperRef.current) {
+          tableWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollWidth;
+        }
+        window.scrollTo(0, document.body.scrollHeight); // Scroll page to the bottom
+      }, 50); // Small delay, adjust if necessary
+    }
   };
 
   // Function to handle deleting a new control column by index
   const handleDeleteControlColumn = (colIndexToDelete: number) => {
-      // Only allow deletion if not in submissions view
-      if (!showSubmissions) {
-          // Decrease column count
-          setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
+    // Only allow deletion if not in submissions view
+    if (!showSubmissions) {
+      // Decrease column count
+      setNewControlColumns(prevCount => Math.max(0, prevCount - 1));
 
-          // Remove the column at the specified index from selections
-          setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
-              const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
-              return updatedSelections;
-          });
-      }
+      // Remove the column at the specified index from selections
+      setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+        const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
+        return updatedSelections;
+      });
+    }
   };
 
   // Function to handle changes in the new control column dropdowns
   const handleNewControlChange = (colIndex: number, rowIndex: number, value: string) => {
-      // Only allow changes if not in submissions view
-      if (!showSubmissions) {
-          const currentSelection = newControlSelections[colIndex]?.[rowIndex];
-          const prevValue = currentSelection?.value || '';
-          setPreviousValue(prevValue); // Store the previous value
+    // Only allow changes if not in submissions view
+    if (!showSubmissions) {
+      const currentSelection = newControlSelections[colIndex]?.[rowIndex];
+      const prevValue = currentSelection?.value || '';
+      setPreviousValue(prevValue); // Store the previous value
 
-          if (value === 'DIFFERENT') {
-              // Open modal and store editing cell info
-              setIsModalOpen(true);
-              setEditingCell({ colIndex, rowIndex });
-              // Initialize modal description with existing description if any
-              setModalDescription(currentSelection?.description || '');
-          } else {
-              // For other values, update state directly and clear description
-              setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
-                  const updatedSelections = prevSelections.map((column, cIdx) => {
-                      if (cIdx === colIndex) {
-                          return column.map((cellValue, rIdx) => {
-                              if (rIdx === rowIndex) {
-                                  return { value: value, description: '' }; // Clear description for non-DIFFERENT
-                              }
-                              return cellValue;
-                          });
-                      }
-                      return column;
-                  });
-                  return updatedSelections;
+      if (value === 'DIFFERENT') {
+        // Open modal and store editing cell info
+        setIsModalOpen(true);
+        setEditingCell({ colIndex, rowIndex });
+        // Initialize modal description with existing description if any
+        setModalDescription(currentSelection?.description || '');
+      } else {
+        // For other values, update state directly and clear description
+        setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+          const updatedSelections = prevSelections.map((column, cIdx) => {
+            if (cIdx === colIndex) {
+              return column.map((cellValue, rIdx) => {
+                if (rIdx === rowIndex) {
+                  return { value: value, description: '' }; // Clear description for non-DIFFERENT
+                }
+                return cellValue;
               });
-          }
+            }
+            return column;
+          });
+          return updatedSelections;
+        });
       }
+    }
   };
 
-   // Function to handle saving the description from the modal
+  // Function to handle saving the description from the modal
   const handleModalSave = () => {
     if (!modalDescription.trim()) {
       alert("Description is required for 'DIFFERENT'.");
@@ -241,20 +241,20 @@ export default function Home() {
 
     // Update the state with the value 'DIFFERENT' and the provided description
     if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
-        setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
-            const updatedSelections = prevSelections.map((column, cIdx) => {
-                if (cIdx === editingCell.colIndex) {
-                    return column.map((cellValue, rIdx) => {
-                        if (rIdx === editingCell.rowIndex) {
-                            return { value: 'DIFFERENT', description: modalDescription.trim() };
-                        }
-                        return cellValue;
-                    });
-                }
-                return column;
+      setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+        const updatedSelections = prevSelections.map((column, cIdx) => {
+          if (cIdx === editingCell.colIndex) {
+            return column.map((cellValue, rIdx) => {
+              if (rIdx === editingCell.rowIndex) {
+                return { value: 'DIFFERENT', description: modalDescription.trim() };
+              }
+              return cellValue;
             });
-            return updatedSelections;
+          }
+          return column;
         });
+        return updatedSelections;
+      });
     }
 
     // Close modal and reset modal state
@@ -266,96 +266,106 @@ export default function Home() {
 
   // Function to handle canceling the modal
   const handleModalCancel = () => {
-      // Revert the dropdown value to its previous state and clear description
-      if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
-           setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
-                const updatedSelections = prevSelections.map((column, cIdx) => {
-                    if (cIdx === editingCell.colIndex) { // Corrected typo here
-                        return column.map((cellValue, rIdx) => {
-                            if (rIdx === editingCell.rowIndex) {
-                                // Revert to the previous value and clear description
-                                return { value: previousValue, description: '' };
-                            }
-                            return cellValue;
-                        });
-                    }
-                    return column;
-                });
-                return updatedSelections;
+    // Revert the dropdown value to its previous state and clear description
+    if (editingCell.colIndex !== null && editingCell.rowIndex !== null) {
+      setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => { // Added explicit types
+        const updatedSelections = prevSelections.map((column, cIdx) => {
+          if (cIdx === editingCell.colIndex) { // Corrected typo here
+            return column.map((cellValue, rIdx) => {
+              if (rIdx === editingCell.rowIndex) {
+                // Revert to the previous value and clear description
+                return { value: previousValue, description: '' };
+              }
+              return cellValue;
             });
-      }
+          }
+          return column;
+        });
+        return updatedSelections;
+      });
+    }
 
-      // Close modal and reset modal state
-      setIsModalOpen(false);
-      setEditingCell({ colIndex: null, rowIndex: null });
-      setModalDescription('');
-      setPreviousValue(''); // Clear previous value
+    // Close modal and reset modal state
+    setIsModalOpen(false);
+    setEditingCell({ colIndex: null, rowIndex: null });
+    setModalDescription('');
+    setPreviousValue(''); // Clear previous value
   };
 
   // Function to check if all required descriptions for DIFFERENT are filled AND all cells have a selection
   const areAllNewControlsValid = (): boolean => {
-      if (newControlColumns === 0) {
-          return false; // No new columns to validate, so cannot submit
-      }
+    if (newControlColumns === 0) {
+      return false; // No new columns to validate, so cannot submit
+    }
 
-      // Iterate through each column
-      for (const column of newControlSelections) {
-          // Iterate through each row in the column
-          for (const cell of column) {
-              // Check if the cell has a selection (value is not the placeholder empty string)
-              if (cell.value === '') {
-                  return false; // Found a cell without a selection
-              }
-              // If the value is DIFFERENT and the description is empty after trimming
-              if (cell.value === 'DIFFERENT' && !cell.description.trim()) {
-                  return false; // Found a DIFFERENT cell with an empty description
-              }
-          }
+    // Iterate through each column
+    for (const column of newControlSelections) {
+      // Iterate through each row in the column
+      for (const cell of column) {
+        // Check if the cell has a selection (value is not the placeholder empty string)
+        if (cell.value === '') {
+          return false; // Found a cell without a selection
+        }
+        // If the value is DIFFERENT and the description is empty after trimming
+        if (cell.value === 'DIFFERENT' && !cell.description.trim()) {
+          return false; // Found a DIFFERENT cell with an empty description
+        }
       }
+    }
 
-      return true; // All new controls are valid (all selected and descriptions provided for DIFFERENT)
+    return true; // All new controls are valid (all selected and descriptions provided for DIFFERENT)
   };
 
-    // Function to handle the submission of data
-    const handleSubmit = async () => { // Make the function async
-        const submissionData = {
-            questionId: selectedQuestionId, // Include the selected question ID
-            newControlSelections: newControlSelections,
-        };
+  // Function to handle the submission of data
+  const handleSubmit = async () => { // Make the function async
+    // Iterate through each new control column and send a separate submission
+    for (const controlColumn of newControlSelections) {
+      const submissionData = {
+        questionId: selectedQuestionId, // Include the selected question ID
+        newControlSelections: controlColumn, // Send only one column's data
+      };
 
-        try {
-            const response = await fetch('/api/submit-control-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(submissionData),
-            });
+      try {
+        const response = await fetch('/api/submit-control-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(submissionData),
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit data');
-            }
-
-            const result = await response.json();
-            console.log('Submission successful:', result.data);
-            // Removed the alert("New Control data submitted successfully!");
-
-            // After successful submission, show the submissions box and trigger fetch
-            setShowSubmissions(true);
-            // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
-
-        } catch (error: unknown) {
-            console.error('Error submitting data:', error);
-             // Safely access error message
-            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during submission.';
-            alert(`Error submitting data: ${errorMessage}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          // Log or handle error for individual submission, but maybe don't halt the loop entirely
+          console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
+          // Optionally break or continue based on desired error handling
+          // For now, we'll let it continue trying other columns
+          // throw new Error(errorData.error || 'Failed to submit a control column'); // If you want to stop on first error
+        } else {
+          const result = await response.json();
+          console.log('Control column submitted successfully:', result.data);
         }
-    };
+
+
+      } catch (error: unknown) {
+        console.error('Error submitting a control column:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during column submission.';
+        alert(`Error submitting a control column: ${errorMessage}`);
+        // Optionally break or continue
+      }
+    }
+
+    // After attempting to submit all columns, update UI state
+    setShowSubmissions(true);
+    // Scrolling handled by the useEffect watching showSubmissions and lastSubmissions
+    //  alert("Submission process completed. Check console for details on individual columns."); // Inform user process finished
+
+
+  };
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
-    // Find the currently active question based on the active tab ID
+  // Find the currently active question based on the active tab ID
   const activeQuestion = questions.find(q => q.id === activeQuestionTabId);
 
 
@@ -377,8 +387,8 @@ export default function Home() {
 
   // Estimated width for the first sticky column (adjust if needed)
   const firstColumnWidth = '200px';
-    // Adjusted sticky left position for Methodological Feature after removing Submission #
-    const stickyFeatureLeft = '0px';
+  // Adjusted sticky left position for Methodological Feature after removing Submission #
+  const stickyFeatureLeft = '0px';
 
 
   // Define a common header style
@@ -392,29 +402,29 @@ export default function Home() {
     minWidth: '150px', // Match INTERVENTION header min-width
   };
 
-    // Style for submitted table cells
-    const submittedTableCellStyle: React.CSSProperties = {
-        border: '1px solid #ddd',
-        padding: '8px',
-        textAlign: 'left',
-        fontWeight: 'normal',
-        minWidth: '150px', // Match interactive table column width
-        verticalAlign: 'top', // Align content to the top
-    };
+  // Style for submitted table cells
+  const submittedTableCellStyle: React.CSSProperties = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    textAlign: 'left',
+    fontWeight: 'normal',
+    minWidth: '150px', // Match interactive table column width
+    verticalAlign: 'top', // Align content to the top
+  };
 
-    // Style for the sticky Methodological Feature column in the submitted table
-    const submittedStickyFeatureCellStyle: React.CSSProperties = {
-        ...submittedTableCellStyle, // Inherit base styles
-        backgroundColor: 'black',
-        color: 'white',
-        position: 'sticky',
-        left: stickyFeatureLeft, // Use adjusted sticky left position
-        zIndex: 1,
-        minWidth: firstColumnWidth, // Match interactive table feature column width
-        cursor: 'help', // Indicate hover for description
-    };
+  // Style for the sticky Methodological Feature column in the submitted table
+  const submittedStickyFeatureCellStyle: React.CSSProperties = {
+    ...submittedTableCellStyle, // Inherit base styles
+    backgroundColor: 'black',
+    color: 'white',
+    position: 'sticky',
+    left: stickyFeatureLeft, // Use adjusted sticky left position
+    zIndex: 1,
+    minWidth: firstColumnWidth, // Match interactive table feature column width
+    cursor: 'help', // Indicate hover for description
+  };
 
-     // Removed submittedStickySubmissionCellStyle
+  // Removed submittedStickySubmissionCellStyle
 
 
   // Base style for buttons (padding, border, etc.)
@@ -426,12 +436,12 @@ export default function Home() {
     fontSize: '1rem',
   };
 
-    // Style for tab buttons
-    const tabButtonStyle: React.CSSProperties = {
-        ...newBaseButtonStyle,
-        padding: '8px 12px', // Smaller padding for tabs
-        fontSize: '0.9rem', // Smaller font size
-    };
+  // Style for tab buttons
+  const tabButtonStyle: React.CSSProperties = {
+    ...newBaseButtonStyle,
+    padding: '8px 12px', // Smaller padding for tabs
+    fontSize: '0.9rem', // Smaller font size
+  };
 
 
   // Style for info boxes (IV, DV, Features, Measurement)
@@ -500,7 +510,7 @@ export default function Home() {
     resize: 'vertical', // Allow vertical resizing
   };
 
-   const modalButtonContainerStyle: React.CSSProperties = {
+  const modalButtonContainerStyle: React.CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-end', // Align buttons to the right
     gap: '10px', // Space between buttons
@@ -508,38 +518,40 @@ export default function Home() {
   };
 
   const modalButtonStyle: React.CSSProperties = {
-      padding: '8px 15px',
-      border: 'none',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-      fontWeight: 'bold',
+    padding: '8px 15px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
   };
 
-    // Group submissions by questionId
-    const submissionsByQuestionId = lastSubmissions.reduce((acc, submission) => {
-        if (!acc[submission.questionId]) {
-            acc[submission.questionId] = [];
-        }
-        // Store original index to calculate submission number within the filtered list later
-        acc[submission.questionId].push(submission);
-        return acc;
-    }, {} as Record<number, FetchedSubmission[]>);
+  // Group submissions by questionId
+  const submissionsByQuestionId = lastSubmissions.reduce((acc, submission) => {
+    if (!acc[submission.questionId]) {
+      acc[submission.questionId] = [];
+    }
+    // Store original index to calculate submission number within the filtered list later
+    acc[submission.questionId].push(submission);
+    return acc;
+  }, {} as Record<number, FetchedSubmission[]>);
 
 
-    // Get unique question IDs from submissions, sorted
-    const uniqueSubmissionQuestionIds = Object.keys(submissionsByQuestionId).map(Number).sort((a, b) => a - b);
+  // Get unique question IDs from submissions, sorted
+  const uniqueSubmissionQuestionIds = Object.keys(submissionsByQuestionId).map(Number).sort((a, b) => a - b);
 
-    // Get submissions for the active tab, sorted by createdAt for consistent numbering within tab
-    const activeSubmissions = activeQuestionTabId !== null
-        ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
-        : [];
+  // Get submissions for the active tab, sorted by createdAt for consistent numbering within tab
+  const activeSubmissions = activeQuestionTabId !== null
+    ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
+    : [];
 
-    // Determine the number of new control columns for the active question's submissions
-    // This needs to find the maximum number of new controls across all submissions for the active question
-    const maxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
-        return Math.max(max, submission.newControlSelections.length);
-    }, 0);
+  // Determine the number of new control columns for the active question's submissions
+  // This needs to find the maximum number of new controls across all submissions for the active question
+  const maxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
+    return Math.max(max, submission.newControlSelections.length);
+  }, 0);
+
+  // Removed the unused 'submittedTableRows' variable definition
 
 
   return (
@@ -641,20 +653,20 @@ export default function Home() {
               <div style={{ ...staticBoxStyle, marginTop: '8px' }}>
                 {/* Instructions Block (Hidden after submissions are shown) */}
                 {!showSubmissions && (
-                    <>
-                        <div style={{ marginBottom: '20px' }}>
-                          <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
-                          <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
-                            This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
-                          </p>
-                        </div>
-                         <div style={{ marginBottom: '15px', color: '#333' }}>
-                            <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
-                            <p style={{ margin: '5px 0 0 0', fontSize: '1rem', color: '#555' }}>
-                              The interactive table below will update to allow you to consider how different components are handled across treatments.
-                            </p>
-                          </div>
-                    </>
+                  <>
+                    <div style={{ marginBottom: '20px' }}>
+                      <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
+                      <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
+                        This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
+                      </p>
+                    </div>
+                    <div style={{ marginBottom: '15px', color: '#333' }}>
+                      <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>Second, add new controls.</h5>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}> {/* Removed bottom margin */}
+                        The interactive table below will update to allow you to consider how different components are handled across treatments.
+                      </p>
+                    </div>
+                  </>
                 )}
 
 
@@ -664,24 +676,19 @@ export default function Home() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
                       <thead>
                         <tr>
-                          {/* Styled Header for Methodological Feature - Sticky, matches common header style */}
-                          <th style={{
-                              ...commonHeaderStyle,
-                              position: 'sticky',
-                              left: 0,
-                              zIndex: 10,
-                              minWidth: firstColumnWidth
+                          <th style={{ // Styled Header for Methodological Feature - Sticky, matches common header style
+                            ...commonHeaderStyle,
+                            position: 'sticky',
+                            left: 0,
+                            zIndex: 10,
+                            minWidth: firstColumnWidth
                           }}>METHODOLOGICAL FEATURE</th>
-                          {/* Styled Header for Intervention - Matches common header style */}
-                          <th style={commonHeaderStyle}>INTERVENTION</th>
-                          {/* Styled Header for Complete - Matches common header style */}
-                          <th style={commonHeaderStyle}>COMPLETE</th>
-                          {/* Dynamically added New Control Headers with delete icon - Matches common header style */}
+                          <th style={commonHeaderStyle}>INTERVENTION</th> {/* Styled Header for Intervention - Matches common header style */}
+                          <th style={commonHeaderStyle}>COMPLETE</th>{/* Styled Header for Complete - Matches common header style */}
                           {[...Array(newControlColumns)].map((_, colIndex) => (
                             <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>NEW CONTROL
-                              {/* Disable delete button if showSubmissions is true */}
-                              <span style={{ marginLeft: '8px', cursor: showSubmissions ? 'not-allowed' : 'pointer', verticalAlign: 'middle', opacity: showSubmissions ? 0.5 : 1 }} onClick={() => handleDeleteControlColumn(colIndex)} title="Delete column"> {/* Pass colIndex here */}
-                                  <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                              <span style={{ marginLeft: '8px', cursor: showSubmissions ? 'not-allowed' : 'pointer', verticalAlign: 'middle', opacity: showSubmissions ? 0.5 : 1 }} onClick={() => handleDeleteControlColumn(colIndex)} title="Delete column">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                               </span>
                             </th>
                           ))}
@@ -699,22 +706,19 @@ export default function Home() {
                               >
                                 {item.feature.toUpperCase()}
                               </td>
-                              {/* Styled Cell for Intervention - NOW SCROLLABLE */}
-                              <td style={{
+                              <td style={{ // Styled Cell for Intervention - NOW SCROLLABLE
                                 border: '1px solid #ddd', padding: '8px', backgroundColor: 'grey', color: 'white', fontWeight: 'normal', // Removed sticky position, left, and zIndex
                                 minWidth: '150px'
                               }}>
                                 BASE
                               </td>
-                              {/* Styled Cell for Complete (using existing getCompleteCellStyle) */}
-                              <td style={{
+                              <td style={{ // Styled Cell for Complete (using existing getCompleteCellStyle)
                                 border: '1px solid #ddd', padding: '8px', fontWeight: 'normal', ...getCompleteCellStyle(item.option1), minWidth: '100px'
                               }}>
                                 {item.option1.toUpperCase()}
                               </td>
-                              {/* Dynamically added New Control Cells with dropdowns and styling */}
                               {[...Array(newControlColumns)].map((_, colIndex) => (
-                                <td
+                                <td // Dynamically added New Control Cells with dropdowns and styling
                                   key={`new-cell-${rowIndex}-${colIndex}`}
                                   style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left', fontWeight: 'normal', minWidth: '150px' }}
                                   // Display description on hover for DIFFERENT if it exists
@@ -737,8 +741,7 @@ export default function Home() {
                                     disabled={showSubmissions} // Disable dropdown if showSubmissions is true
                                   >
                                     <option value="" disabled>Define</option> {/* Placeholder option */}
-                                    {/* Conditional rendering for ABSENT based on item.absent */}
-                                    {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>}
+                                    {item.absent === 'Y' && <option value="ABSENT">ABSENT</option>}{/* Conditional rendering for ABSENT based on item.absent */}
                                     <option value="DIFFERENT">DIFFERENT</option>
                                     <option value="MATCH">MATCH</option>
                                   </select>
@@ -747,11 +750,11 @@ export default function Home() {
                             </tr>
                           ))
                         ) : (
-                             <tr>
-                                <td colSpan={3 + newControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777' }}>
-                                     No specific methodological features listed for this question.
-                                </td>
-                             </tr>
+                          <tr>
+                            <td colSpan={3 + newControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777' }}>
+                              No specific methodological features listed for this question.
+                            </td>
+                          </tr>
                         )}
                       </tbody>
                     </table>
@@ -763,55 +766,55 @@ export default function Home() {
                 </div>
 
 
-                 {/* Button Container - Inside the box, below the table, centered with flex */}
+                {/* Button Container - Inside the box, below the table, centered with flex */}
                 {!showSubmissions && ( // Added this condition
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
-                        {/* START OVER Button - Placed first for left position */}
-                        <button
-                          onClick={handleGoBackClick}
-                          className="button" // Apply standard button class
-                          style={{...newBaseButtonStyle, marginRight: '10px'}} // Apply base button styles, add some space to the right
-                        >
-                          START OVER {/* Changed button text */}
-                        </button>
-                        {/* ADD NEW CONTROL Button - Placed second for right position */}
-                        {/* Disable add button if showSubmissions is true */}
-                        <button
-                            onClick={handleAddControlColumn}
-                            className="button" // Apply standard button class
-                            style={{...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer'}} // Apply standard button styles, add space
-                            disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions} // Disable when 6 or more columns exist or showSubmissions is true
-                        >
-                            ADD NEW CONTROL
-                        </button>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
+                    {/* START OVER Button - Placed first for left position */}
+                    <button
+                      onClick={handleGoBackClick}
+                      className="button" // Apply standard button class
+                      style={{ ...newBaseButtonStyle, marginRight: '10px' }} // Apply base button styles, add some space to the right
+                    >
+                      START OVER {/* Changed button text */}
+                    </button>
+                    {/* ADD NEW CONTROL Button - Placed second for right position */}
+                    {/* Disable add button if showSubmissions is true */}
+                    <button
+                      onClick={handleAddControlColumn}
+                      className="button" // Apply standard button class
+                      style={{ ...newBaseButtonStyle, opacity: showSubmissions ? 0.5 : 1, cursor: showSubmissions ? 'not-allowed' : 'pointer' }} // Apply standard button styles, add space
+                      disabled={newControlColumns >= MAX_NEW_CONTROLS || showSubmissions} // Disable when 6 or more columns exist or showSubmissions is true
+                    >
+                      ADD NEW CONTROL
+                    </button>
 
-                        {/* SUBMIT Button - Conditionally rendered and styled */}
-                        {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
-                             <button
-                                onClick={handleSubmit}
-                                className="button" // Apply standard button class
-                                 style={{...newBaseButtonStyle, marginLeft: '10px'}} // Apply base button styles, add space
-                             >
-                                SUBMIT
-                             </button>
-                        )}
-                    </div>
+                    {/* SUBMIT Button - Conditionally rendered and styled */}
+                    {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
+                      <button
+                        onClick={handleSubmit}
+                        className="button" // Apply standard button class
+                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }} // Apply base button styles, add space
+                      >
+                        SUBMIT
+                      </button>
+                    )}
+                  </div>
                 )}
 
 
                 {/* Message when max controls reached (Hidden after submissions are shown) */}
                 {newControlColumns >= MAX_NEW_CONTROLS && !showSubmissions && (
-                    <p style={{ textAlign: 'center', color: 'red', marginTop: '10px' }}>
-                        Maximum number of NEW CONTROLS has been reached.
-                    </p>
+                  <p style={{ textAlign: 'center', color: 'red', marginTop: '10px' }}>
+                    Maximum number of NEW CONTROLS has been reached.
+                  </p>
                 )}
 
                 {/* Message when validation fails but button isn't shown yet (Hidden after submissions are shown) */}
-                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
-                    <p style={{ textAlign: 'center', color: 'orange', marginTop: '10px' }}>
-                         Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
-                     </p>
-                 )}
+                {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
+                  <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
+                    Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
+                  </p>
+                )}
 
 
               </div>
@@ -822,128 +825,134 @@ export default function Home() {
 
           {/* Box to display last 30 submissions (shown if showSubmissions is true and there are submissions) */}
           {showSubmissions && lastSubmissions.length > 0 && (
-               <div style={{ ...staticBoxStyle, marginTop: '20px' }} ref={submissionsBoxRef}> {/* Assign ref here */}
-                    {/* Updated Heading and Description */}
-                    <h3 style={{marginTop: 0, marginBottom: '5px', textAlign: 'center'}}>
-                        Consider how others have designed their controls.
-                    </h3>
-                    <p style={{ marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', color: '#555' }}>
-                        Below you can view controls submitted by {"{the original authors/other students}"} for this experiment. Hover over any group to examine it in detail.
-                    </p>
+            <div style={{ ...staticBoxStyle, marginTop: '20px' }} ref={submissionsBoxRef}> {/* Assign ref here */}
+              {/* Updated Heading and Description */}
+              <h3 style={{ marginTop: 0, marginBottom: '5px', textAlign: 'center' }}>
+                Consider how others have designed their controls.
+              </h3>
+              <p style={{ marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', color: '#555' }}>
+                Below you can view controls submitted by {"{the original authors/other students}"} for this experiment. Hover over any group to examine it in detail.
+              </p>
 
 
-                    {/* Tabs for each question with submissions */}
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                        {uniqueSubmissionQuestionIds.map(questionId => {
-                             const question = questions.find(q => q.id === questionId);
-                             const buttonText = question ? `Question ${question.id}` : `Question ${questionId}`; // Fallback text
-                             return (
-                                 <button
-                                     key={questionId}
-                                     onClick={() => setActiveQuestionTabId(questionId)}
-                                     style={{
-                                         ...tabButtonStyle, // Use the defined tab button style
-                                         backgroundColor: activeQuestionTabId === questionId ? '#6F00FF' : '#e0e0e0',
-                                         color: activeQuestionTabId === questionId ? 'white' : 'black',
-                                         fontWeight: activeQuestionTabId === questionId ? 'bold' : 'normal',
-                                     }}
-                                 >
-                                     {buttonText}
-                                 </button>
-                             );
-                        })}
+              {/* Tabs for each question with submissions */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                {uniqueSubmissionQuestionIds.map(questionId => {
+                  const question = questions.find(q => q.id === questionId);
+                  const buttonText = question ? `Question ${question.id}` : `Question ${questionId}`; // Fallback text
+                  return (
+                    <button
+                      key={questionId}
+                      onClick={() => setActiveQuestionTabId(questionId)}
+                      style={{
+                        ...tabButtonStyle, // Use the defined tab button style
+                        backgroundColor: activeQuestionTabId === questionId ? '#6F00FF' : '#e0e0e0',
+                        color: activeQuestionTabId === questionId ? 'white' : 'black',
+                        fontWeight: activeQuestionTabId === questionId ? 'bold' : 'normal',
+                      }}
+                    >
+                      {buttonText}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Display content for the active question tab */}
+              {activeQuestionTabId !== null && (
+                <>
+                  {/* Show Question text for the active tab */}
+                  {activeQuestion && (
+                    <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
+                      Question {activeQuestion.id}: {activeQuestion.question}
+                    </h4>
+                  )}
+
+                  {/* Display submissions for the active question tab in a table */}
+                  {activeSubmissions.length > 0 ? (
+                    <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling if needed */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+                        <thead>
+                          <tr> {/* Adjusted formatting */}
+                            <th style={{ ...commonHeaderStyle, minWidth: firstColumnWidth, position: 'sticky', left: 0, zIndex: 2 }}>METHODOLOGICAL FEATURE</th> {/* Header for Feature - Sticky, adjusted left */}
+                            <th style={{ ...commonHeaderStyle, minWidth: '150px' }}>INTERVENTION</th> {/* Header for Intervention (Base) */}
+                            <th style={{ ...commonHeaderStyle, minWidth: '100px' }}>COMPLETE</th>{/* Header for Complete Control */}
+                            {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
+                              <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>NEW CONTROL</th>
+                            ))}
+                          </tr>{/* Adjusted formatting */}
+                        </thead>
+                        <tbody>
+                          {/* Generate table rows based on methodological considerations */}
+                          {/* Handle case where activeQuestion or methodologicalConsiderations is missing or empty before mapping */}
+                          {!activeQuestion?.methodologicalConsiderations || activeQuestion.methodologicalConsiderations.length === 0 ? (
+                            <tr>
+                              <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
+                                No methodological features found for this question.
+                              </td>
+                            </tr>
+                          ) : (
+                            // Outer loop iterates through methodological considerations (rows)
+                            activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) => (
+                              <tr key={`row-${activeQuestionTabId}-${rowIndex}`}>
+                                <td // Methodological Feature Cell (Sticky)
+                                  title={consideration.description}
+                                  style={{ ...submittedStickyFeatureCellStyle, left: 0 }}
+                                >
+                                  {consideration.feature.toUpperCase()}
+                                </td>
+                                <td style={{ ...submittedTableCellStyle, backgroundColor: 'grey', color: 'white' }}> {/* Intervention Cell (Base) - Always "BASE" */}
+                                  BASE
+                                </td>
+                                <td style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1) }}> {/* Complete Control Cell - Get value from questions.json */}
+                                  {consideration.option1.toUpperCase()}
+                                </td>
+                                {activeSubmissions.map((submission) => { // Inner loop iterates through submissions (columns)
+                                  const controlSelection = submission.newControlSelections[rowIndex]; // Access data at the current row index
+                                  return (
+                                    <td
+                                      key={`${submission._id}-${rowIndex}-submitted`} // Key for each cell: submission ID + row index
+                                      style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
+                                      title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
+                                    >
+                                      {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'} {/* Display value or '-' if undefined */}
+                                      {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
+                                        <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
                     </div>
+                  ) : (
+                    <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
+                  )}
+                </>
+              )}
+              {/* Message if no active tab selected */}
+              {activeQuestionTabId === null && uniqueSubmissionQuestionIds.length > 0 && (
+                <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Select a question tab above to view submissions.</p>
+              )}
 
-                     {/* Display content for the active question tab */}
-                     {activeQuestionTabId !== null && (
-                        <>
-                            {/* Show Question text for the active tab */}
-                            {activeQuestion && (
-                                <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
-                                    Question {activeQuestion.id}: {activeQuestion.question}
-                                </h4>
-                            )}
+              {/* START OVER Button (Added Here) */}
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <button
+                  onClick={handleGoBackClick}
+                  className="button"
+                  style={{
+                    ...newBaseButtonStyle,
+                    backgroundColor: '#dc3545', // A common color for reset/danger actions
+                    color: 'white',
+                  }}
+                >
+                  START OVER
+                </button>
+              </div>
 
-                            {/* Display submissions for the active question tab in a table */}
-                            {activeSubmissions.length > 0 ? (
-                                <div style={{ overflowX: 'auto' }}> {/* Wrapper for horizontal scrolling if needed */}
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
-                                        <thead>
-                                            <tr>
-                                                {/* Removed SUBMISSION # header */}
-                                                <th style={{...commonHeaderStyle, minWidth: firstColumnWidth, position: 'sticky', left: 0, zIndex: 2}}>METHODOLOGICAL FEATURE</th> {/* Header for Feature - Sticky, adjusted left */}
-                                                <th style={{...commonHeaderStyle, minWidth: '150px'}}>INTERVENTION</th> {/* Header for Intervention (Base) */}
-                                                <th style={{...commonHeaderStyle, minWidth: '100px'}}>COMPLETE</th> {/* Header for Complete Control */}
-                                                {/* Dynamically added Headers for New Controls */}
-                                                {/* Create a header for each *potential* new control column based on the max found */}
-                                                {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
-                                                    <th key={`submitted-header-${colIndex}`} style={{...commonHeaderStyle, minWidth: '150px'}}>NEW CONTROL {colIndex + 1}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {/* Adjusted formatting to remove whitespace issues */}
-                                            {activeSubmissions.map((submission) =>
-                                                !activeQuestion || !activeQuestion.methodologicalConsiderations ? (
-                                                    <tr key={`no-features-${submission._id}`}>
-                                                         <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
-                                                              No methodological features found for this question.
-                                                         </td>
-                                                    </tr>
-                                                ) : (
-                                                    activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) =>
-                                                        <tr key={`${submission._id}-${rowIndex}`}>
-                                                            {/* Removed Submission Number Cell */}
-                                                            {/* Methodological Feature Cell (Sticky) */}
-                                                            <td
-                                                                title={consideration.description}
-                                                                 style={{...submittedStickyFeatureCellStyle, left: 0}} // Apply sticky and styling, adjusted left to 0
-                                                            >
-                                                                 {consideration.feature.toUpperCase()}
-                                                            </td>
-                                                            {/* Intervention Cell (Base) - Always "BASE" */}
-                                                             <td style={{...submittedTableCellStyle, backgroundColor: 'grey', color: 'white'}}> {/* Added styling */}
-                                                                 BASE
-                                                              </td>
-                                                            {/* Complete Control Cell - Get value from questions.json */}
-                                                             <td style={{...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1)}}>
-                                                                {consideration.option1.toUpperCase()}
-                                                              </td>
-                                                            {/* Dynamically added New Control Cells */}
-                                                            {/* Loop through the *maximum* number of columns, and display data if it exists for this submission */}
-                                                            {[...Array(maxSubmittedControlColumns)].map((_, colIndex) => {
-                                                                 const controlSelection = submission.newControlSelections[colIndex]?.[rowIndex];
-                                                                return (
-                                                                    <td
-                                                                        key={`${submission._id}-${rowIndex}-${colIndex}-submitted`}
-                                                                        style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }} // Apply base and color styling
-                                                                        title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''} // Show description on hover
-                                                                    >
-                                                                        {controlSelection?.value.toUpperCase() || '-'} {/* Display value or '-' if no data for this column/row */}
-                                                                        {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                                                                            <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span> // Inherit color
-                                                                        )}
-                                                                    </td>
-                                                                );
-                                                            })}
-                                                        </tr>
-                                                    )
-                                                )
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
-                            )}
-                        </>
-                     )}
-                      {/* Message if no active tab selected */}
-                      {activeQuestionTabId === null && uniqueSubmissionQuestionIds.length > 0 && (
-                           <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Select a question tab above to view submissions.</p>
-                      )}
-
-                </div>
+            </div>
           )}
 
         </div>
@@ -962,10 +971,10 @@ export default function Home() {
               required // Mark as required
             />
             <div style={modalButtonContainerStyle}>
-              <button onClick={handleModalCancel} style={{...modalButtonStyle, backgroundColor: '#ccc', color: 'black'}}>
+              <button onClick={handleModalCancel} style={{ ...modalButtonStyle, backgroundColor: '#ccc', color: 'black' }}>
                 Cancel
               </button>
-              <button onClick={handleModalSave} style={{...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white'}}>
+              <button onClick={handleModalSave} style={{ ...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white' }}>
                 Save
               </button>
             </div>
