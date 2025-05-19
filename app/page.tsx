@@ -3,16 +3,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
-// Import types from the central types file
-// 'MethodologicalConsideration' is removed from this import as it's implicitly used via 'Question'
-// and not directly for annotations in this specific file.
+import SubmissionsDisplay from '@/components/SubmissionsDisplay'; // Import the new component
 import {
   Question,
   ControlSelection,
   FetchedSubmission
 } from '@/types';
 
-// Define the maximum number of new control columns
 const MAX_NEW_CONTROLS = 6;
 
 export default function Home() {
@@ -127,8 +124,6 @@ export default function Home() {
   const handleAddControlColumn = () => {
     if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
       setNewControlColumns(prevCount => prevCount + 1);
-      // Note: The elements of selectedQuestion?.methodologicalConsiderations are MethodologicalConsideration
-      // but the type 'MethodologicalConsideration' is not directly annotated here.
       setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => {
         const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
         return [...prevSelections, newColumn];
@@ -441,7 +436,9 @@ export default function Home() {
     ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
     : [];
 
-  const maxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
+  // Calculate maxSubmittedControlColumns based on the actual data in activeSubmissions for the current tab
+  // This ensures the table is sized correctly for the specific question's submissions.
+  const currentMaxSubmittedControlColumns = activeSubmissions.reduce((max, submission) => {
     return Math.max(max, submission.newControlSelections.length);
   }, 0);
 
@@ -505,7 +502,6 @@ export default function Home() {
               <h4 style={infoBoxHeaderStyle}>Methodological Features</h4>
               {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                 <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: '#555' }}>
-                  {/* Here, 'item' is implicitly MethodologicalConsideration due to 'selectedQuestion.methodologicalConsiderations' */}
                   {selectedQuestion.methodologicalConsiderations.map((item, index) => (
                     <li key={index} title={item.description} style={{ marginBottom: '8px', cursor: 'help' }}>{item.feature}</li>
                   ))}
@@ -626,8 +622,8 @@ export default function Home() {
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
                 {uniqueSubmissionQuestionIds.map(questionId => {
-                  const question = questions.find(q => q.id === questionId);
-                  const buttonText = question ? `Question ${question.id}` : `Question ${questionId}`;
+                  const questionForTab = questions.find(q => q.id === questionId); // Renamed to avoid conflict
+                  const buttonText = questionForTab ? `Question ${questionForTab.id}` : `Question ${questionId}`;
                   return (
                     <button
                       key={questionId}
@@ -645,95 +641,26 @@ export default function Home() {
                 })}
               </div>
 
-              {activeQuestionTabId !== null && (
-                <>
-                  {activeQuestion && (
-                    <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
-                      Question {activeQuestion.id}: {activeQuestion.question}
-                    </h4>
-                  )}
-                  {activeSubmissions.length > 0 ? (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ ...commonHeaderStyle, minWidth: firstColumnWidth, position: 'sticky', left: 0, zIndex: 2 }}>METHODOLOGICAL FEATURE</th>
-                            <th style={{ ...commonHeaderStyle, minWidth: '150px' }}>INTERVENTION</th>
-                            <th style={{ ...commonHeaderStyle, minWidth: '100px' }}>COMPLETE</th>
-                            {activeSubmissions.length > 0 && [...Array(maxSubmittedControlColumns)].map((_, colIndex) => (
-                              <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>NEW CONTROL</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {!activeQuestion?.methodologicalConsiderations || activeQuestion.methodologicalConsiderations.length === 0 ? (
-                            <tr>
-                              <td colSpan={3 + maxSubmittedControlColumns} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
-                                No methodological features found for this question.
-                              </td>
-                            </tr>
-                          ) : (
-                            activeQuestion.methodologicalConsiderations.map((consideration, rowIndex) => (
-                              <tr key={`row-${activeQuestionTabId}-${rowIndex}`}>
-                                <td
-                                  title={consideration.description}
-                                  style={{ ...submittedStickyFeatureCellStyle, left: 0 }}
-                                >
-                                  {consideration.feature.toUpperCase()}
-                                </td>
-                                <td style={{ ...submittedTableCellStyle, backgroundColor: 'grey', color: 'white' }}>
-                                  BASE
-                                </td>
-                                <td style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1) }}>
-                                  {consideration.option1.toUpperCase()}
-                                </td>
-                                {activeSubmissions.map((submission, submissionIndex) => {
-                                  const controlSelection = submission.newControlSelections[rowIndex];
-                                  return (
-                                    <td
-                                      key={`${submission._id}-${rowIndex}-submitted-${submissionIndex}`}
-                                      style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(controlSelection?.value || '') }}
-                                      title={controlSelection?.value === 'DIFFERENT' && controlSelection?.description ? controlSelection?.description : ''}
-                                    >
-                                      {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'}
-                                      {controlSelection?.value === 'DIFFERENT' && controlSelection?.description && (
-                                        <span style={{ fontStyle: 'italic', marginLeft: '5px', color: 'inherit' }}>({controlSelection.description})</span>
-                                      )}
-                                    </td>
-                                  );
-                                })}
-                                {activeSubmissions.length < maxSubmittedControlColumns &&
-                                  [...Array(maxSubmittedControlColumns - activeSubmissions.length)].map((_, emptyColIndex) => (
-                                    <td key={`empty-submitted-cell-${rowIndex}-${emptyColIndex}`} style={submittedTableCellStyle}>-</td>
-                                  ))
-                                }
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
-                  )}
-                </>
+              {activeQuestionTabId !== null ? (
+                <SubmissionsDisplay
+                  activeQuestion={activeQuestion}
+                  activeSubmissions={activeSubmissions}
+                  maxSubmittedControlColumns={currentMaxSubmittedControlColumns} // Use current calculation
+                  commonHeaderStyle={commonHeaderStyle}
+                  submittedTableCellStyle={submittedTableCellStyle}
+                  submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
+                  firstColumnWidth={firstColumnWidth}
+                  newBaseButtonStyle={newBaseButtonStyle}
+                  getCompleteCellStyle={getCompleteCellStyle}
+                  onGoBackClick={handleGoBackClick}
+                />
+              ) : (
+                uniqueSubmissionQuestionIds.length > 0 && ( // Show this only if there are tabs but none selected
+                    <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
+                        Select a question tab above to view submissions.
+                    </p>
+                )
               )}
-              {activeQuestionTabId === null && uniqueSubmissionQuestionIds.length > 0 && (
-                <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Select a question tab above to view submissions.</p>
-              )}
-
-              <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <button
-                  onClick={handleGoBackClick}
-                  className="button"
-                  style={{
-                    ...newBaseButtonStyle,
-                    marginBottom: '0'
-                  }}
-                >
-                  START OVER
-                </button>
-              </div>
             </div>
           )}
         </div>
