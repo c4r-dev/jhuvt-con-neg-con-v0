@@ -4,12 +4,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 // Import types from the central types file
+// 'MethodologicalConsideration' is removed from this import as it's implicitly used via 'Question'
+// and not directly for annotations in this specific file.
 import {
-  MethodologicalConsideration,
   Question,
   ControlSelection,
   FetchedSubmission
-} from '@/types'; // Or use relative path like '../types' if path alias '@/' is not set up
+} from '@/types';
 
 // Define the maximum number of new control columns
 const MAX_NEW_CONTROLS = 6;
@@ -32,7 +33,6 @@ export default function Home() {
   const [modalDescription, setModalDescription] = useState('');
   const [previousValue, setPreviousValue] = useState('');
 
-  // Ref for the submissions box (tableWrapperRef was removed as its functionality is now internal to InteractiveNewControlsTable)
   const submissionsBoxRef = useRef<HTMLDivElement>(null);
 
 
@@ -127,6 +127,8 @@ export default function Home() {
   const handleAddControlColumn = () => {
     if (newControlColumns < MAX_NEW_CONTROLS && !showSubmissions) {
       setNewControlColumns(prevCount => prevCount + 1);
+      // Note: The elements of selectedQuestion?.methodologicalConsiderations are MethodologicalConsideration
+      // but the type 'MethodologicalConsideration' is not directly annotated here.
       setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => {
         const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
         return [...prevSelections, newColumn];
@@ -503,6 +505,7 @@ export default function Home() {
               <h4 style={infoBoxHeaderStyle}>Methodological Features</h4>
               {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                 <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: '#555' }}>
+                  {/* Here, 'item' is implicitly MethodologicalConsideration due to 'selectedQuestion.methodologicalConsiderations' */}
                   {selectedQuestion.methodologicalConsiderations.map((item, index) => (
                     <li key={index} title={item.description} style={{ marginBottom: '8px', cursor: 'help' }}>{item.feature}</li>
                   ))}
@@ -684,16 +687,7 @@ export default function Home() {
                                 <td style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1) }}>
                                   {consideration.option1.toUpperCase()}
                                 </td>
-                                {/* This part needs careful review for how it maps submissions to columns.
-                                    Assuming 'activeSubmissions' represents different submissions that each might have data for this 'rowIndex'.
-                                    If 'maxSubmittedControlColumns' is derived from the max number of *new controls* within a *single submission's* `newControlSelections` array,
-                                    then the current rendering of the *submitted data table* might need adjustment.
-                                    The original logic showed activeSubmissions being mapped for *each row* of methodological considerations,
-                                    which seems to intend that each submission provides a column.
-                                    Let's ensure this structure is what was intended for the display table.
-                                */}
-                                {activeSubmissions.map((submission, submissionIndex) => { // Iterate through submissions to form columns
-                                  // Attempt to get the control selection for the current methodological consideration (rowIndex) from the current submission
+                                {activeSubmissions.map((submission, submissionIndex) => {
                                   const controlSelection = submission.newControlSelections[rowIndex];
                                   return (
                                     <td
@@ -708,7 +702,6 @@ export default function Home() {
                                     </td>
                                   );
                                 })}
-                                {/* If the number of submissions is less than maxSubmittedControlColumns, fill with empty cells for alignment */}
                                 {activeSubmissions.length < maxSubmittedControlColumns &&
                                   [...Array(maxSubmittedControlColumns - activeSubmissions.length)].map((_, emptyColIndex) => (
                                     <td key={`empty-submitted-cell-${rowIndex}-${emptyColIndex}`} style={submittedTableCellStyle}>-</td>
