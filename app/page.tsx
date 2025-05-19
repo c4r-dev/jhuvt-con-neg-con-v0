@@ -264,8 +264,10 @@ export default function Home() {
           const errorData = await response.json();
           console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
         } else {
-          const _result = await response.json(); // Changed 'result' to '_result'
-          // console.log('Control column submitted successfully:', _result.data);
+          await response.json(); // Consume the response body without assigning
+          // If you need the data later for the log:
+          // const resultForLog = await response.json();
+          // console.log('Control column submitted successfully:', resultForLog.data);
         }
       } catch (error: unknown) {
         console.error('Error submitting a control column:', error);
