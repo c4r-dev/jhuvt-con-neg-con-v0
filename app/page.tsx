@@ -611,7 +611,7 @@ export default function Home() {
                 Consider how others have designed their controls.
               </h3>
               <p style={{ marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', color: '#555' }}>
-                Below you can view controls submitted by {"{the original authors/other students}"} for this experiment. Hover over any group to examine it in detail.
+                Below you can view new controls submitted by other students for this experiment.
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
