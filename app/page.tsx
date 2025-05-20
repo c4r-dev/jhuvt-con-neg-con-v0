@@ -529,7 +529,7 @@ export default function Home() {
                 {!showSubmissions && (
                   <>
                     <div style={{ marginBottom: '20px' }}>
-                      <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the COMPLETE negative control.</h5>
+                      <h5 style={{ marginTop: 0, marginBottom: '5px', fontWeight: 'bold', fontSize: '1.2rem' }}>First, review the NO INTERVENTION negative control.</h5>
                       <p style={{ fontSize: '1rem', color: '#555', margin: '5px 0 0 0' }}>
                         This is the group that receives no treatment or intervention, and is expected to show no change or result what-so-ever.
                       </p>
