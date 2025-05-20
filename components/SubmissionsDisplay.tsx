@@ -36,6 +36,16 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   const actualNewControlColumnsToDisplay = Math.min(activeSubmissions.length, MAX_NEW_CONTROL_COLUMNS_TO_DISPLAY);
   const submissionsToDisplay = activeSubmissions.slice(0, actualNewControlColumnsToDisplay);
   const colSpanForNoFeatures = 3 + actualNewControlColumnsToDisplay;
+  
+  // Create a sticky header style that preserves position but uses the common header background color
+  const stickyHeaderStyle: React.CSSProperties = {
+    ...commonHeaderStyle,
+    position: 'sticky',
+    left: 0,
+    zIndex: 2,
+    minWidth: firstColumnWidth,
+    cursor: 'help',
+  };
 
   return (
     <>
@@ -48,7 +58,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
             <thead>
               <tr>
-                <th style={{ ...commonHeaderStyle, ...submittedStickyFeatureCellStyle, minWidth: firstColumnWidth, left: 0, zIndex: 2 }}> {/* Ensure sticky styles are applied and cursor:help is from submittedStickyFeatureCellStyle */}
+                <th style={stickyHeaderStyle}>
                   METHODOLOGICAL FEATURE
                 </th>
                 <th style={commonHeaderStyle}>INTERVENTION</th>
