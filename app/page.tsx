@@ -22,7 +22,6 @@ export default function Home() {
   const [newControlSelections, setNewControlSelections] = useState<ControlSelection[][]>([]);
   const [lastSubmissions, setLastSubmissions] = useState<FetchedSubmission[]>([]);
   const [showSubmissions, setShowSubmissions] = useState<boolean>(false);
-  const [activeQuestionTabId, setActiveQuestionTabId] = useState<number | null>(null);
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,12 +66,6 @@ export default function Home() {
           }
           const result = await response.json();
           setLastSubmissions(result.data);
-          if (result.data.length > 0) {
-            const uniqueQuestionIds: number[] = Array.from(new Set(result.data.map((sub: FetchedSubmission) => sub.questionId as number)));
-            if (uniqueQuestionIds.length > 0) {
-              setActiveQuestionTabId(uniqueQuestionIds[0]);
-            }
-          }
         } catch (error: unknown) {
           console.error('Error fetching last submissions:', error);
           const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
@@ -117,7 +110,6 @@ export default function Home() {
     setNewControlSelections([]);
     setLastSubmissions([]);
     setShowSubmissions(false);
-    setActiveQuestionTabId(null);
     window.scrollTo(0, 0);
   };
 
