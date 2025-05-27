@@ -113,7 +113,7 @@
   },
   {
     "id": 3,
-    "question": "Does rareberry consumption affect rotarod performance??",
+    "question": "Does rareberry consumption affect rotarod performance?",
     "independentVariable": "Rareberry consumption",
     "dependentVariable": "Time to fall off rotarod",
     "methodologicalConsiderations": [
