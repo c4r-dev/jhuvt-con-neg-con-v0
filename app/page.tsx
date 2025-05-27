@@ -280,7 +280,6 @@ export default function Home() {
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
-  const activeQuestion = questions.find(q => q.id === activeQuestionTabId);
 
 
   const getCompleteCellStyle = (value: string): React.CSSProperties => {
@@ -340,11 +339,6 @@ export default function Home() {
     fontSize: '1rem',
   };
 
-  const tabButtonStyle: React.CSSProperties = {
-    ...newBaseButtonStyle,
-    padding: '8px 12px',
-    fontSize: '0.9rem',
-  };
 
   const infoBoxStyle: React.CSSProperties = {
     flex: 1,
@@ -430,13 +424,6 @@ export default function Home() {
     acc[submission.questionId].push(submission);
     return acc;
   }, {} as Record<number, FetchedSubmission[]>);
-
-
-  const uniqueSubmissionQuestionIds = Object.keys(submissionsByQuestionId).map(Number).sort((a, b) => a - b);
-
-  const activeSubmissions = activeQuestionTabId !== null
-    ? submissionsByQuestionId[activeQuestionTabId]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []
-    : [];
 
 
   return (
@@ -614,48 +601,17 @@ export default function Home() {
                 Below you can view new controls submitted by other students for this experiment.
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                {uniqueSubmissionQuestionIds.map(questionId => {
-                  const questionForTab = questions.find(q => q.id === questionId);
-                  const buttonText = questionForTab ? `Question ${questionForTab.id}` : `Question ${questionId}`;
-                  const isActive = activeQuestionTabId === questionId;
-                  return (
-                    <button
-                      key={questionId}
-                      onClick={() => setActiveQuestionTabId(questionId)}
-                      style={{
-                        ...tabButtonStyle,
-                        textTransform: 'uppercase',
-                        backgroundColor: isActive ? '#6F00FF' : '#e0e0e0',
-                        color: isActive ? 'white' : 'black',
-                        fontWeight: isActive ? 'bold' : 'normal',
-                      }}
-                    >
-                      {buttonText}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {activeQuestionTabId !== null ? (
-                <SubmissionsDisplay
-                  activeQuestion={activeQuestion}
-                  activeSubmissions={activeSubmissions}
-                  commonHeaderStyle={commonHeaderStyle}
-                  submittedTableCellStyle={submittedTableCellStyle}
-                  submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
-                  firstColumnWidth={firstColumnWidth}
-                  newBaseButtonStyle={newBaseButtonStyle}
-                  getCompleteCellStyle={getCompleteCellStyle}
-                  onGoBackClick={handleGoBackClick}
-                />
-              ) : (
-                uniqueSubmissionQuestionIds.length > 0 && (
-                    <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
-                        Select a question tab above to view submissions.
-                    </p>
-                )
-              )}
+              <SubmissionsDisplay
+                activeQuestion={selectedQuestion}
+                activeSubmissions={submissionsByQuestionId[selectedQuestionId!]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []}
+                commonHeaderStyle={commonHeaderStyle}
+                submittedTableCellStyle={submittedTableCellStyle}
+                submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
+                firstColumnWidth={firstColumnWidth}
+                newBaseButtonStyle={newBaseButtonStyle}
+                getCompleteCellStyle={getCompleteCellStyle}
+                onGoBackClick={handleGoBackClick}
+              />
             </div>
           )}
         </div>

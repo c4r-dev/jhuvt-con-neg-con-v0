@@ -50,7 +50,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   return (
     <>
       <h4 style={{ marginTop: '10px', marginBottom: '15px', textAlign: 'center', color: '#333' }}>
-        Question {activeQuestion.id}: {activeQuestion.question}
+        Experiment Details: {activeQuestion.question}
       </h4>
 
       {activeSubmissions.length > 0 ? (
