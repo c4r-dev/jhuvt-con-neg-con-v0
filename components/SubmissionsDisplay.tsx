@@ -87,7 +87,14 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                     <td style={{ ...submittedTableCellStyle, backgroundColor: 'grey', color: 'white' }}>
                       BASE
                     </td>
-                    <td style={{ ...submittedTableCellStyle, ...getCompleteCellStyle(consideration.option1) }}>
+                    <td 
+                      style={{ 
+                        ...submittedTableCellStyle, 
+                        ...getCompleteCellStyle(consideration.option1),
+                        cursor: 'help'
+                      }}
+                      title={consideration.option1Text}
+                    >
                       {consideration.option1.toUpperCase()}
                     </td>
                     {submissionsToDisplay.map((submission, submissionIndex) => {

@@ -109,13 +109,17 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                 }}>
                   BASE
                 </td>
-                <td style={{
-                  border: '1px solid #ddd',
-                  padding: '8px',
-                  fontWeight: 'normal',
-                  ...getCompleteCellStyle(item.option1),
-                  minWidth: '100px',
-                }}>
+                <td 
+                  style={{
+                    border: '1px solid #ddd',
+                    padding: '8px',
+                    fontWeight: 'normal',
+                    ...getCompleteCellStyle(item.option1),
+                    minWidth: '100px',
+                    cursor: 'help',
+                  }}
+                  title={item.option1Text}
+                >
                   {item.option1.toUpperCase()}
                 </td>
                 {[...Array(newControlColumns)].map((_, colIndex) => {
