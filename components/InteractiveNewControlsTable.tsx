@@ -11,10 +11,12 @@ interface InteractiveNewControlsTableProps {
   methodologicalConsiderations: MethodologicalConsideration[];
   newControlColumns: number;
   newControlSelections: ControlSelection[][];
+  controlNames: string[];
   showSubmissions: boolean;
   commonHeaderStyle: React.CSSProperties;
   firstColumnWidth: string;
   onNewControlChange: (colIndex: number, rowIndex: number, value: string) => void;
+  onControlNameChange: (colIndex: number, newName: string) => void;
   onDeleteControlColumn: (colIndex: number) => void;
   getCompleteCellStyle: (value: string) => React.CSSProperties;
 }
@@ -23,10 +25,12 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
   methodologicalConsiderations,
   newControlColumns,
   newControlSelections,
+  controlNames,
   showSubmissions,
   commonHeaderStyle,
   firstColumnWidth,
   onNewControlChange,
+  onControlNameChange,
   onDeleteControlColumn,
   getCompleteCellStyle,
 }) => {
@@ -62,7 +66,26 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
             <th style={commonHeaderStyle}>NO INTERVENTION</th>
             {[...Array(newControlColumns)].map((_, colIndex) => (
               <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>
-                NEW CONTROL
+                <input
+                  type="text"
+                  value={controlNames[colIndex] || ''}
+                  onChange={(e) => onControlNameChange(colIndex, e.target.value)}
+                  disabled={showSubmissions}
+                  style={{
+                    border: '1px solid #ccc',
+                    background: 'white',
+                    color: 'black',
+                    fontSize: 'inherit',
+                    fontWeight: 'inherit',
+                    fontFamily: 'inherit',
+                    width: 'calc(100% - 32px)',
+                    outline: 'none',
+                    cursor: showSubmissions ? 'default' : 'text',
+                    padding: '2px 4px',
+                    borderRadius: '2px',
+                  }}
+                  placeholder="NEW CONTROL"
+                />
                 <span
                   style={{
                     marginLeft: '8px',

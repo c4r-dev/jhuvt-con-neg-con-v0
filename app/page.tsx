@@ -20,6 +20,7 @@ export default function Home() {
   const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
   const [newControlColumns, setNewControlColumns] = useState<number>(0);
   const [newControlSelections, setNewControlSelections] = useState<ControlSelection[][]>([]);
+  const [controlNames, setControlNames] = useState<string[]>([]);
   const [lastSubmissions, setLastSubmissions] = useState<FetchedSubmission[]>([]);
   const [showSubmissions, setShowSubmissions] = useState<boolean>(false);
 
@@ -108,6 +109,7 @@ export default function Home() {
     setSelectedQuestionId(null);
     setNewControlColumns(0);
     setNewControlSelections([]);
+    setControlNames([]);
     setLastSubmissions([]);
     setShowSubmissions(false);
     window.scrollTo(0, 0);
@@ -120,6 +122,7 @@ export default function Home() {
         const newColumn: ControlSelection[] = selectedQuestion?.methodologicalConsiderations?.map(() => ({ value: '', description: '' })) || [];
         return [...prevSelections, newColumn];
       });
+      setControlNames(prevNames => [...prevNames, '']);
 
       setTimeout(() => {
         window.scrollTo(0, document.body.scrollHeight);
@@ -133,6 +136,17 @@ export default function Home() {
       setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => {
         const updatedSelections = prevSelections.filter((_, index) => index !== colIndexToDelete);
         return updatedSelections;
+      });
+      setControlNames(prevNames => prevNames.filter((_, index) => index !== colIndexToDelete));
+    }
+  };
+
+  const handleControlNameChange = (colIndex: number, newName: string) => {
+    if (!showSubmissions) {
+      setControlNames(prevNames => {
+        const updatedNames = [...prevNames];
+        updatedNames[colIndex] = newName;
+        return updatedNames;
       });
     }
   };
@@ -237,10 +251,12 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
-    for (const controlColumn of newControlSelections) {
+    for (let i = 0; i < newControlSelections.length; i++) {
+      const controlColumn = newControlSelections[i];
       const submissionData = {
         questionId: selectedQuestionId,
         newControlSelections: controlColumn,
+        controlName: (controlNames[i] && controlNames[i].trim()) || 'NEW CONTROL',
       };
 
       try {
@@ -527,10 +543,12 @@ export default function Home() {
                     methodologicalConsiderations={selectedQuestion.methodologicalConsiderations}
                     newControlColumns={newControlColumns}
                     newControlSelections={newControlSelections}
+                    controlNames={controlNames}
                     showSubmissions={showSubmissions}
                     commonHeaderStyle={commonHeaderStyle}
                     firstColumnWidth={firstColumnWidth}
                     onNewControlChange={handleNewControlChange}
+                    onControlNameChange={handleControlNameChange}
                     onDeleteControlColumn={handleDeleteControlColumn}
                     getCompleteCellStyle={getCompleteCellStyle}
                   />

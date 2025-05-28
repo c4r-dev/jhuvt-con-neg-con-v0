@@ -7,12 +7,12 @@ export async function POST(request: Request) {
   await dbConnect(); // Connect to MongoDB
 
   try {
-    // Expect a single questionId and a single array for newControlSelections (representing one column)
-    const { questionId, newControlSelections } = await request.json();
+    // Expect a single questionId, controlName, and a single array for newControlSelections (representing one column)
+    const { questionId, newControlSelections, controlName } = await request.json();
 
-    // Validate incoming data structure: questionId must be a number, newControlSelections must be an array
-    if (typeof questionId !== 'number' || !Array.isArray(newControlSelections)) {
-       return NextResponse.json({ success: false, error: 'Invalid data structure. Expected questionId (number) and newControlSelections (array).' }, { status: 400 });
+    // Validate incoming data structure: questionId must be a number, newControlSelections must be an array, controlName must be a string
+    if (typeof questionId !== 'number' || !Array.isArray(newControlSelections) || typeof controlName !== 'string') {
+       return NextResponse.json({ success: false, error: 'Invalid data structure. Expected questionId (number), newControlSelections (array), and controlName (string).' }, { status: 400 });
     }
 
     // Further validation: check if newControlSelections array contains objects with value and description
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const newSubmission = await Submission.create({
       questionId,
       newControlSelections, // This is now the single column array received
+      controlName, // Name of the control column
     });
 
     return NextResponse.json({ success: true, data: newSubmission }, { status: 201 });

@@ -63,8 +63,8 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                 </th>
                 <th style={commonHeaderStyle}>INTERVENTION</th>
                 <th style={commonHeaderStyle}>NO INTERVENTION</th>
-                {[...Array(actualNewControlColumnsToDisplay)].map((_, colIndex) => (
-                  <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>NEW CONTROL</th>
+                {submissionsToDisplay.map((submission, colIndex) => (
+                  <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>{submission.controlName}</th>
                 ))}
               </tr>
             </thead>

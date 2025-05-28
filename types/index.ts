@@ -27,5 +27,6 @@ export interface FetchedSubmission {
   _id: string; // MongoDB document ID
   questionId: number;
   newControlSelections: ControlSelection[]; // Each document is one column
+  controlName: string; // Name of the control column
   createdAt: string; // Or Date, depending on how you want to handle it on the client
 }

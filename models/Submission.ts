@@ -11,6 +11,7 @@ interface IControlSelection {
 interface ISubmission extends Document {
   questionId: number;
   newControlSelections: IControlSelection[]; // Changed to array of IControlSelection
+  controlName: string; // Name of the control column
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ const ControlSelectionSchema: Schema = new Schema({
 const SubmissionSchema: Schema = new Schema({
   questionId: { type: Number, required: true },
   newControlSelections: [ControlSelectionSchema], // Changed to array of ControlSelectionSchema
+  controlName: { type: String, required: true, default: 'NEW CONTROL' }, // Name of the control column
   createdAt: { type: Date, default: Date.now },
 });
 
