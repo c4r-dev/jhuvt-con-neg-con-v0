@@ -1,7 +1,8 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
 import {
@@ -9,12 +10,11 @@ import {
   ControlSelection,
   FetchedSubmission
 } from '@/types';
-import SessionConfigPopup from '../components/SessionPopup/SessionConfigPopup'
-
 
 const MAX_NEW_CONTROLS = 6;
 
-export default function Home() {
+function ControlGroupContent() {
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +25,6 @@ export default function Home() {
   const [controlNames, setControlNames] = useState<string[]>([]);
   const [lastSubmissions, setLastSubmissions] = useState<FetchedSubmission[]>([]);
   const [showSubmissions, setShowSubmissions] = useState<boolean>(false);
-  const [showConfigPopup, setShowConfigPopup] =  useState<boolean>(true);
-  const [sessionID, setSessionID] = useState<string | null>(null);
-
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,12 +33,7 @@ export default function Home() {
   const [previousValue, setPreviousValue] = useState('');
 
   const submissionsBoxRef = useRef<HTMLDivElement>(null);
- const handleConfigClose = () => {
-    // Only allow closing if a sessionID exists
-    if (sessionID) {
-      setShowConfigPopup(false)
-    }
-  }
+
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -70,7 +62,9 @@ export default function Home() {
     if (showSubmissions) {
       const fetchLastSubmissions = async () => {
         try {
-          const response = await fetch('/api/get-submissions');
+          const rawSessionId = searchParams.get('sessionID') || 'individual';
+          const sessionId = rawSessionId === 'individual1' ? 'individual' : rawSessionId;
+          const response = await fetch(`/api/get-submissions?sessionId=${encodeURIComponent(sessionId)}`);
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to fetch last submissions');
@@ -85,7 +79,7 @@ export default function Home() {
       };
       fetchLastSubmissions();
     }
-  }, [showSubmissions]);
+  }, [showSubmissions, searchParams]);
 
   useEffect(() => {
     if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
@@ -261,12 +255,16 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
+    const rawSessionId = searchParams.get('sessionID') || 'individual';
+    const sessionId = rawSessionId === 'individual1' ? 'individual' : rawSessionId;
+    
     for (let i = 0; i < newControlSelections.length; i++) {
       const controlColumn = newControlSelections[i];
       const submissionData = {
         questionId: selectedQuestionId,
         newControlSelections: controlColumn,
         controlName: (controlNames[i] && controlNames[i].trim()) || 'NEW CONTROL',
+        sessionId,
       };
 
       try {
@@ -449,15 +447,6 @@ export default function Home() {
       {!selectionLocked && !showSubmissions && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
-           {/* Session Config Popup */}
-     {showConfigPopup && (
-  <SessionConfigPopup
-    open={showConfigPopup}
-    onClose={handleConfigClose}
-    sessionID={sessionID}
-    onSessionChange={setSessionID}
-  />
-)}
           {loading && <p>Loading questions...</p>}
           {error && <p style={{ color: 'red' }}>Error loading questions: {error}</p>}
           {!loading && !error && questions.length > 0 && (
@@ -669,5 +658,13 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}>
+      <ControlGroupContent />
+    </Suspense>
   );
 }
