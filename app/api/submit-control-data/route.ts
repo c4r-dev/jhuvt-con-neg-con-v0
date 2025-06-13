@@ -1,40 +1,69 @@
-// app/api/submit-control-data/route.ts
+
+
+// app/api/test-new-submission/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Submission from '../../../models/Submission';
 
 export async function POST(request: Request) {
-  await dbConnect(); // Connect to MongoDB
+  await dbConnect();
 
   try {
-    // Expect a single questionId, controlName, and a single array for newControlSelections (representing one column)
-    const { questionId, newControlSelections, controlName } = await request.json();
+    const body = await request.json();
+    
+    console.log('🧪 Testing new submission with sessionId...');
+    console.log('Request body:', JSON.stringify(body, null, 2));
 
-    // Validate incoming data structure: questionId must be a number, newControlSelections must be an array, controlName must be a string
-    if (typeof questionId !== 'number' || !Array.isArray(newControlSelections) || typeof controlName !== 'string') {
-       return NextResponse.json({ success: false, error: 'Invalid data structure. Expected questionId (number), newControlSelections (array), and controlName (string).' }, { status: 400 });
-    }
+    // Test the fixed model
+    const submissionData = {
+      questionId: body.questionId || 888,
+      newControlSelections: body.newControlSelections || [
+        { value: 'test-value', description: 'Test description' }
+      ],
+      controlName: body.controlName || 'TEST_CONTROL_WITH_SESSION',
+      sessionId: body.sessionId || 'test_session_fixed_model'
+    };
 
-    // Further validation: check if newControlSelections array contains objects with value and description
-     const isValidSelectionArray = newControlSelections.every(item =>
-        typeof item === 'object' && item !== null && 'value' in item && typeof item.value === 'string' && ('description' in item ? typeof item.description === 'string' : true)
-     );
+    console.log('Creating submission with data:', JSON.stringify(submissionData, null, 2));
 
-    if (!isValidSelectionArray) {
-         return NextResponse.json({ success: false, error: 'Invalid data structure within newControlSelections array. Each item must be an object with a string "value".' }, { status: 400 });
-    }
+    // Create using the fixed model
+    const newSubmission = await Submission.create(submissionData);
+    
+    console.log('✅ Submission created:', JSON.stringify(newSubmission.toObject(), null, 2));
 
-    // Create and save a new document for this single column
-    const newSubmission = await Submission.create({
-      questionId,
-      newControlSelections, // This is now the single column array received
-      controlName, // Name of the control column
+    // Verify it exists with sessionId
+    const verification = await Submission.findById(newSubmission._id);
+    const verificationObject = verification ? verification.toObject() : null;
+    
+    console.log('✅ Verification query result:', JSON.stringify(verificationObject, null, 2));
+
+    // Test querying by sessionId
+    const queryTest = await Submission.find({ 
+      sessionId: submissionData.sessionId 
+    });
+    
+    console.log('✅ Query by sessionId found:', queryTest.length, 'submissions');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Test submission successful',
+      submissionData: newSubmission.toObject(),
+      verification: verificationObject,
+      hasSessionIdField: verificationObject !== null && 'sessionId' in verificationObject,
+      queryBySessionIdCount: queryTest.length,
+      sessionIdValue: verificationObject?.sessionId
     });
 
-    return NextResponse.json({ success: true, data: newSubmission }, { status: 201 });
   } catch (error: unknown) {
-    console.error('Error saving submission:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while saving submission.';
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
+    console.error('❌ Test submission failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Test failed';
+    return NextResponse.json({ 
+      success: false, 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    }, { status: 500 });
   }
 }
+
+//if you want to clear the database before testing 
+// use this api - POST http://localhost:3002/api/cleanup-database
