@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material';
 
-const SessionConfigPopup = ({ 
+const SessionConfigPopupContent = ({ 
   open, 
   onClose,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -209,6 +209,14 @@ const SessionConfigPopup = ({
         </>
       )}
     </Dialog>
+  );
+};
+
+const SessionConfigPopup = (props) => {
+  return (
+    <Suspense fallback={null}>
+      <SessionConfigPopupContent {...props} />
+    </Suspense>
   );
 };
 
