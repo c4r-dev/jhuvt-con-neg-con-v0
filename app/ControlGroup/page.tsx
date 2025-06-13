@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
@@ -13,7 +13,7 @@ import {
 
 const MAX_NEW_CONTROLS = 6;
 
-export default function Home() {
+function ControlGroupContent() {
   const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -658,5 +658,13 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}>
+      <ControlGroupContent />
+    </Suspense>
   );
 }
