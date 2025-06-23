@@ -52,7 +52,7 @@
 //   const handleModeSelect = (selectedMode) => {
 //     if (selectedMode === 'individual') {
 //       // Route to individual mode with hardcoded sessionID
-//       router.push(`/ResearchSelection?sessionID=individual1`);
+//       router.push(`/ControlGroup?sessionID=individual1`);
 //       handleClose();
 //     } else {
 //       // Generate new sessionID for group mode
@@ -66,13 +66,13 @@
 //   };
 
 //   const handleStart = () => {
-//     router.push(`/ResearchSelection?sessionID=${sessionID}`);
+//     router.push(`/ControlGroup?sessionID=${sessionID}`);
 //     handleClose();
 //   };
 
 //   const handleCopyLink = async () => {
 //     try {
-//       const sharingURL = `${window.location.origin}/ResearchSelection?sessionID=${sessionID}`;
+//       const sharingURL = `${window.location.origin}/ControlGroup?sessionID=${sessionID}`;
 //       await navigator.clipboard.writeText(sharingURL);
 //     } catch (err) {
 //       console.error('Failed to copy:', err);
@@ -164,7 +164,7 @@
 //                 borderRadius: 1,
 //                 wordBreak: 'break-all'
 //               }}>
-//                 {`${window.location.origin}/ResearchSelection?sessionID=${sessionID}`}
+//                 {`${window.location.origin}/ControlGroup?sessionID=${sessionID}`}
 //               </Typography>
 //               <Button 
 //                 variant="contained"
@@ -229,7 +229,8 @@ import {
 const SessionConfigPopup = ({ 
   open, 
   onClose,
-  sessionID: initialSessionID
+  sessionID: initialSessionID,
+  onSessionChange
 }) => {
   const [mode, setMode] = useState(null);
   const [sessionID, setSessionID] = useState(initialSessionID || generateSessionID());
@@ -258,7 +259,8 @@ const SessionConfigPopup = ({
     if (!urlSessionID) {
       onClose?.();
     }
-  }, [searchParams]);
+  onSessionChange?.(urlSessionID);
+  }, [searchParams, onSessionChange]);
 
   const handleClose = (event, reason) => {
     // Prevent closing when clicking outside
