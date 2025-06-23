@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
 import {
@@ -451,12 +451,14 @@ export default function Home() {
           <h2>Select a Question for Your Experiment:</h2>
            {/* Session Config Popup */}
      {showConfigPopup && (
-  <SessionConfigPopup
-    open={showConfigPopup}
-    onClose={handleConfigClose}
-    sessionID={sessionID}
-    onSessionChange={setSessionID}
-  />
+  <Suspense fallback={<div>Loading...</div>}>
+    <SessionConfigPopup
+      open={showConfigPopup}
+      onClose={handleConfigClose}
+      sessionID={sessionID}
+      onSessionChange={setSessionID}
+    />
+  </Suspense>
 )}
           {loading && <p>Loading questions...</p>}
           {error && <p style={{ color: 'red' }}>Error loading questions: {error}</p>}
