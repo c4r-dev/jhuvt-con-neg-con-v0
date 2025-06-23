@@ -455,7 +455,6 @@ export default function Home() {
     open={showConfigPopup}
     onClose={handleConfigClose}
     sessionID={sessionID}
-    onSessionChange={setSessionID}
   />
 )}
           {loading && <p>Loading questions...</p>}
