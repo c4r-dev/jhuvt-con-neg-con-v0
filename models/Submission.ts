@@ -72,10 +72,3 @@ const Submission = mongoose.model<ISubmission>(
 );
 
 export default Submission;
-
-// Alternative approach - Create a completely new model with different name for testing
-export const SubmissionV2 = mongoose.models.SubmissionV2 || mongoose.model<ISubmission>(
-  'SubmissionV2', 
-  SubmissionSchema, 
-  'negativecontrolssubmissions_v2' // Different collection for testing
-);
