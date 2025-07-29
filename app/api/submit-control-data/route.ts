@@ -46,8 +46,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Test submission successful',
-      submissionData: newSubmission.toObject(),
+      message: 'Submission successful',
+      data: newSubmission.toObject(),
       verification: verificationObject,
       hasSessionIdField: verificationObject !== null && 'sessionId' in verificationObject,
       queryBySessionIdCount: queryTest.length,

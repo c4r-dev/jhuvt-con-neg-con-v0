@@ -27,6 +27,7 @@ export default function Home() {
   const [showSubmissions, setShowSubmissions] = useState<boolean>(false);
   const [showConfigPopup, setShowConfigPopup] =  useState<boolean>(true);
   const [sessionID, setSessionID] = useState<string | null>(null);
+  const [currentUserSubmissionIds, setCurrentUserSubmissionIds] = useState<string[]>([]);
 
 
 
@@ -66,23 +67,24 @@ export default function Home() {
     fetchQuestions();
   }, []);
 
+  const fetchLastSubmissions = async () => {
+    try {
+      const response = await fetch('/api/get-submissions');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch last submissions');
+      }
+      const result = await response.json();
+      setLastSubmissions(result.data);
+    } catch (error: unknown) {
+      console.error('Error fetching last submissions:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
+      alert(`Error fetching last submissions: ${errorMessage}`);
+    }
+  };
+
   useEffect(() => {
     if (showSubmissions) {
-      const fetchLastSubmissions = async () => {
-        try {
-          const response = await fetch('/api/get-submissions');
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch last submissions');
-          }
-          const result = await response.json();
-          setLastSubmissions(result.data);
-        } catch (error: unknown) {
-          console.error('Error fetching last submissions:', error);
-          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
-          alert(`Error fetching last submissions: ${errorMessage}`);
-        }
-      };
       fetchLastSubmissions();
     }
   }, [showSubmissions]);
@@ -122,7 +124,45 @@ export default function Home() {
     setControlNames([]);
     setLastSubmissions([]);
     setShowSubmissions(false);
+    setCurrentUserSubmissionIds([]);
     window.scrollTo(0, 0);
+  };
+
+  const handleBackToInteractive = async () => {
+    // Delete the user's submissions from the database
+    if (currentUserSubmissionIds.length > 0) {
+      try {
+        const response = await fetch('/api/delete-submissions', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ submissionIds: currentUserSubmissionIds }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Failed to delete submissions:', errorData.error || 'Unknown error');
+          alert('Error deleting submissions. They may still appear in the database.');
+        } else {
+          const result = await response.json();
+          console.log(`Successfully deleted ${result.deletedCount} submissions`);
+        }
+      } catch (error: unknown) {
+        console.error('Error deleting submissions:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while deleting submissions.';
+        alert(`Error deleting submissions: ${errorMessage}`);
+      }
+    }
+
+    // Clear local state
+    setShowSubmissions(false);
+    setLastSubmissions([]);
+    setCurrentUserSubmissionIds([]);
+    
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
   const handleAddControlColumn = () => {
@@ -261,6 +301,8 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
+    const submittedIds: string[] = [];
+    
     for (let i = 0; i < newControlSelections.length; i++) {
       const controlColumn = newControlSelections[i];
       const submissionData = {
@@ -282,10 +324,11 @@ export default function Home() {
           const errorData = await response.json();
           console.error('Failed to submit a control column:', errorData.error || 'Unknown error');
         } else {
-          await response.json(); // Consume the response body without assigning
-          // If you need the data later for the log:
-          // const resultForLog = await response.json();
-          // console.log('Control column submitted successfully:', resultForLog.data);
+          const result = await response.json();
+          // Store the submission ID for potential deletion
+          if (result.success && result.data && result.data._id) {
+            submittedIds.push(result.data._id);
+          }
         }
       } catch (error: unknown) {
         console.error('Error submitting a control column:', error);
@@ -293,6 +336,9 @@ export default function Home() {
         alert(`Error submitting a control column: ${errorMessage}`);
       }
     }
+    
+    // Store the IDs of submissions created in this session
+    setCurrentUserSubmissionIds(submittedIds);
     setShowSubmissions(true);
   };
 
@@ -642,6 +688,8 @@ export default function Home() {
                 newBaseButtonStyle={newBaseButtonStyle}
                 getCompleteCellStyle={getCompleteCellStyle}
                 onGoBackClick={handleGoBackClick}
+                onRefreshSubmissions={fetchLastSubmissions}
+                onBackToInteractive={handleBackToInteractive}
               />
             </div>
           )}

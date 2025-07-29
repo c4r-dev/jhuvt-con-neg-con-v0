@@ -4,8 +4,6 @@
 import React from 'react';
 import { Question, FetchedSubmission } from '@/types';
 
-const MAX_NEW_CONTROL_COLUMNS_TO_DISPLAY = 10;
-
 interface SubmissionsDisplayProps {
   activeQuestion: Question | undefined;
   activeSubmissions: FetchedSubmission[];
@@ -16,6 +14,8 @@ interface SubmissionsDisplayProps {
   newBaseButtonStyle: React.CSSProperties;
   getCompleteCellStyle: (value: string) => React.CSSProperties;
   onGoBackClick: () => void;
+  onRefreshSubmissions: () => void;
+  onBackToInteractive: () => void;
 }
 
 const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
@@ -28,14 +28,17 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   newBaseButtonStyle,
   getCompleteCellStyle,
   onGoBackClick,
+  onRefreshSubmissions,
+  onBackToInteractive,
 }) => {
   if (!activeQuestion) {
     return <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>Loading question details...</p>;
   }
 
-  const actualNewControlColumnsToDisplay = Math.min(activeSubmissions.length, MAX_NEW_CONTROL_COLUMNS_TO_DISPLAY);
-  const submissionsToDisplay = activeSubmissions.slice(0, actualNewControlColumnsToDisplay);
-  const colSpanForNoFeatures = 3 + actualNewControlColumnsToDisplay;
+  // Show only the last 15 submissions maximum
+  const MAX_SUBMISSIONS_TO_DISPLAY = 15;
+  const submissionsToDisplay = activeSubmissions.slice(0, MAX_SUBMISSIONS_TO_DISPLAY);
+  const colSpanForNoFeatures = 3 + submissionsToDisplay.length;
   
   // Create a sticky header style that preserves position but uses the common header background color
   const stickyHeaderStyle: React.CSSProperties = {
@@ -130,6 +133,28 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
       )}
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <button
+          onClick={onBackToInteractive}
+          className="button"
+          style={{
+            ...newBaseButtonStyle,
+            marginRight: '10px',
+            marginBottom: '0'
+          }}
+        >
+          BACK
+        </button>
+        <button
+          onClick={onRefreshSubmissions}
+          className="button"
+          style={{
+            ...newBaseButtonStyle,
+            marginRight: '10px',
+            marginBottom: '0'
+          }}
+        >
+          REFRESH
+        </button>
         <button
           onClick={onGoBackClick}
           className="button"
