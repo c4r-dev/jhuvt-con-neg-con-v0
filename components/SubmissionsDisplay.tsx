@@ -12,7 +12,7 @@ interface SubmissionsDisplayProps {
   submittedStickyFeatureCellStyle: React.CSSProperties; // This style should already include cursor: 'help'
   firstColumnWidth: string;
   newBaseButtonStyle: React.CSSProperties;
-  getCompleteCellStyle: (value: string) => React.CSSProperties;
+  getCompleteCellStyle: (value: string, customColor?: string) => React.CSSProperties;
   onGoBackClick: () => void;
   onRefreshSubmissions: () => void;
   onBackToInteractive: () => void;
@@ -58,14 +58,14 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
 
       {activeSubmissions.length > 0 ? (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '900px' }}>
             <thead>
               <tr>
                 <th style={stickyHeaderStyle}>
                   METHODOLOGICAL FEATURE
                 </th>
                 <th style={commonHeaderStyle}>INTERVENTION</th>
-                <th style={commonHeaderStyle}>NO INTERVENTION</th>
+                <th style={commonHeaderStyle}>COMPLETE</th>
                 {submissionsToDisplay.map((submission, colIndex) => (
                   <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>{submission.controlName}</th>
                 ))}
@@ -108,7 +108,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
 
                       const cellStyle: React.CSSProperties = {
                         ...submittedTableCellStyle,
-                        ...getCompleteCellStyle(controlSelection?.value || ''),
+                        ...getCompleteCellStyle(controlSelection?.value || '', controlSelection?.color),
                         cursor: 'help', // Add help cursor as title is always present
                       };
 

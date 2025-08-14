@@ -5,6 +5,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 interface IControlSelection {
   value: string;
   description?: string; // Made optional since it's not always required
+  color?: string; // Added color field for DIFFERENT selections
 }
 
 // Interface for the Submission document (now representing a single new control column)
@@ -18,7 +19,8 @@ interface ISubmission extends Document {
 
 const ControlSelectionSchema: Schema = new Schema({
   value: { type: String, required: true },
-  description: { type: String, required: false }
+  description: { type: String, required: false },
+  color: { type: String, required: false }
 }, { _id: false });
 
 const SubmissionSchema: Schema = new Schema({

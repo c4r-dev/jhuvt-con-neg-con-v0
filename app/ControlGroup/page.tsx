@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
+import DifferentPopup from '@/components/DifferentPopup';
 import {
   Question,
   ControlSelection,
@@ -31,6 +32,7 @@ function ControlGroupContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCell, setEditingCell] = useState<{ colIndex: number | null; rowIndex: number | null }>({ colIndex: null, rowIndex: null });
   const [modalDescription, setModalDescription] = useState('');
+  const [modalColor, setModalColor] = useState('#ff7ef2');
   const [previousValue, setPreviousValue] = useState('');
 
   const submissionsBoxRef = useRef<HTMLDivElement>(null);
@@ -205,6 +207,7 @@ function ControlGroupContent() {
         setIsModalOpen(true);
         setEditingCell({ colIndex, rowIndex });
         setModalDescription(currentSelection?.description || '');
+        setModalColor(currentSelection?.color || '#ff7ef2');
       } else {
         setNewControlSelections((prevSelections: ControlSelection[][]): ControlSelection[][] => {
           const updatedSelections = prevSelections.map((column, cIdx) => {
@@ -224,8 +227,8 @@ function ControlGroupContent() {
     }
   };
 
-  const handleModalSave = () => {
-    if (!modalDescription.trim()) {
+  const handleModalSave = (description: string, color: string) => {
+    if (!description.trim()) {
       alert("Description is required for 'DIFFERENT'.");
       return;
     }
@@ -236,7 +239,7 @@ function ControlGroupContent() {
           if (cIdx === editingCell.colIndex) {
             return column.map((cellValue, rIdx) => {
               if (rIdx === editingCell.rowIndex) {
-                return { value: 'DIFFERENT', description: modalDescription.trim() };
+                return { value: 'DIFFERENT', description: description.trim(), color };
               }
               return cellValue;
             });
@@ -250,6 +253,7 @@ function ControlGroupContent() {
     setIsModalOpen(false);
     setEditingCell({ colIndex: null, rowIndex: null });
     setModalDescription('');
+    setModalColor('#ff7ef2');
     setPreviousValue('');
   };
 
@@ -274,6 +278,7 @@ function ControlGroupContent() {
     setIsModalOpen(false);
     setEditingCell({ colIndex: null, rowIndex: null });
     setModalDescription('');
+    setModalColor('#ff7ef2');
     setPreviousValue('');
   };
 
@@ -343,12 +348,12 @@ function ControlGroupContent() {
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
 
-  const getCompleteCellStyle = (value: string): React.CSSProperties => {
+  const getCompleteCellStyle = (value: string, customColor?: string): React.CSSProperties => {
     switch (value) {
       case 'ABSENT':
         return { backgroundColor: 'black', color: 'white' };
       case 'DIFFERENT':
-        return { backgroundColor: 'orange', color: 'white' };
+        return { backgroundColor: customColor || 'orange', color: 'white' };
       case 'MATCH':
         return { backgroundColor: '#6F00FF', color: 'white' };
       case '':
@@ -358,7 +363,7 @@ function ControlGroupContent() {
     }
   };
 
-  const firstColumnWidth = '200px';
+  const firstColumnWidth = '250px';
   const stickyFeatureLeft = '0px';
 
 
@@ -374,7 +379,7 @@ function ControlGroupContent() {
 
   const submittedTableCellStyle: React.CSSProperties = {
     border: '1px solid #ddd',
-    padding: '8px',
+    padding: '4px',
     textAlign: 'left',
     fontWeight: 'normal',
     minWidth: '150px',
@@ -427,56 +432,6 @@ function ControlGroupContent() {
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
   };
 
-  const modalOverlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  };
-
-  const modalContentStyle: React.CSSProperties = {
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-    maxWidth: '400px',
-    width: '90%',
-    textAlign: 'center',
-  };
-
-  const modalInputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '8px',
-    margin: '10px 0',
-    borderRadius: '4px',
-    border: `1px solid ${modalDescription.trim() === '' ? 'red' : '#ccc'}`,
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    minHeight: '60px',
-    resize: 'vertical',
-  };
-
-  const modalButtonContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '10px',
-    marginTop: '15px',
-  };
-
-  const modalButtonStyle: React.CSSProperties = {
-    padding: '8px 15px',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-  };
 
   const submissionsByQuestionId = lastSubmissions.reduce((acc, submission) => {
     if (!acc[submission.questionId]) {
@@ -488,7 +443,7 @@ function ControlGroupContent() {
 
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '20px auto 20px auto' }}>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '20px auto 20px auto' }}>
       {!selectionLocked && !showSubmissions && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
@@ -682,28 +637,13 @@ function ControlGroupContent() {
         </div>
       )}
 
-      {isModalOpen && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h4>Describe the Difference</h4>
-            <textarea
-              style={modalInputStyle}
-              value={modalDescription}
-              onChange={(e) => setModalDescription(e.target.value)}
-              placeholder="Enter description here..."
-              required
-            />
-            <div style={modalButtonContainerStyle}>
-              <button onClick={handleModalCancel} style={{ ...modalButtonStyle, backgroundColor: '#ccc', color: 'black' }}>
-                Cancel
-              </button>
-              <button onClick={handleModalSave} style={{ ...modalButtonStyle, backgroundColor: '#6F00FF', color: 'white' }}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DifferentPopup
+        isOpen={isModalOpen}
+        initialDescription={modalDescription}
+        initialColor={modalColor}
+        onSave={handleModalSave}
+        onCancel={handleModalCancel}
+      />
     </div>
   );
 }
