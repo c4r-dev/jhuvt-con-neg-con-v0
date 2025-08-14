@@ -18,7 +18,7 @@ interface InteractiveNewControlsTableProps {
   onNewControlChange: (colIndex: number, rowIndex: number, value: string) => void;
   onControlNameChange: (colIndex: number, newName: string) => void;
   onDeleteControlColumn: (colIndex: number) => void;
-  getCompleteCellStyle: (value: string) => React.CSSProperties;
+  getCompleteCellStyle: (value: string, customColor?: string) => React.CSSProperties;
 }
 
 const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = ({
@@ -50,7 +50,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
 
   return (
     <div style={{ overflowX: 'auto' }} ref={internalTableWrapperRef}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '600px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '900px' }}>
         <thead>
           <tr>
             <th style={{
@@ -63,7 +63,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
               METHODOLOGICAL FEATURE
             </th>
             <th style={commonHeaderStyle}>INTERVENTION</th>
-            <th style={commonHeaderStyle}>NO INTERVENTION</th>
+            <th style={commonHeaderStyle}>COMPLETE</th>
             {[...Array(newControlColumns)].map((_, colIndex) => (
               <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>
                 <input
@@ -106,7 +106,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
           {methodologicalConsiderations.map((item, rowIndex) => {
             const featureCellStyle: React.CSSProperties = {
               border: '1px solid #ddd',
-              padding: '8px',
+              padding: '4px',
               cursor: 'help',
               backgroundColor: 'black',
               color: 'white',
@@ -124,7 +124,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                 </td>
                 <td style={{
                   border: '1px solid #ddd',
-                  padding: '8px',
+                  padding: '4px',
                   backgroundColor: 'grey',
                   color: 'white',
                   fontWeight: 'normal',
@@ -135,7 +135,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                 <td 
                   style={{
                     border: '1px solid #ddd',
-                    padding: '8px',
+                    padding: '4px',
                     fontWeight: 'normal',
                     ...getCompleteCellStyle(item.option1),
                     minWidth: '100px',
@@ -152,7 +152,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                   // Define base styles for the select element
                   const selectBaseStyles: React.CSSProperties = {
                     width: '100%',
-                    padding: '4px',
+                    padding: '2px',
                     borderRadius: '4px',
                     border: '1px solid #ccc',
                     fontSize: '1rem',
@@ -162,7 +162,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                   // Combine base styles with dynamic styles (background/color and cursor)
                   const dynamicSelectStyles: React.CSSProperties = {
                     ...selectBaseStyles,
-                    ...getCompleteCellStyle(currentSelection?.value || ''), // Background/color based on value
+                    ...getCompleteCellStyle(currentSelection?.value || '', currentSelection?.color), // Background/color based on value
                     cursor: hasDescriptionForHelp ? 'help' : 'default',   // Cursor based on description presence
                   };
 
@@ -171,7 +171,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                       key={`new-cell-${rowIndex}-${colIndex}`}
                       style={{ // TD style - no cursor here as it's handled by the select now
                         border: '1px solid #ddd',
-                        padding: '8px',
+                        padding: '4px',
                         textAlign: 'left',
                         fontWeight: 'normal',
                         minWidth: '150px',

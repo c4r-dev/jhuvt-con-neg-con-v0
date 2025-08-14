@@ -13,6 +13,7 @@ export interface MethodologicalConsideration {
 export interface ControlSelection {
   value: string;
   description: string;
+  color?: string;
 }
 
 export interface Question {
