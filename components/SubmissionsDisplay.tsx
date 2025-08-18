@@ -65,7 +65,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                   METHODOLOGICAL FEATURE
                 </th>
                 <th style={commonHeaderStyle}>INTERVENTION</th>
-                <th style={commonHeaderStyle}>COMPLETE</th>
+                <th style={commonHeaderStyle}>NO INTERVENTION</th>
                 {submissionsToDisplay.map((submission, colIndex) => (
                   <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>{submission.controlName}</th>
                 ))}

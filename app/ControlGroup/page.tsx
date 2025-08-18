@@ -46,7 +46,15 @@ function ControlGroupContent() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setQuestions(data);
+        
+        // Check if this is a group activity (sessionID is not 'individual' or 'individual1')
+        const rawSessionId = searchParams.get('sessionID') || 'individual';
+        const isGroupActivity = rawSessionId !== 'individual' && rawSessionId !== 'individual1';
+        
+        // If group activity, only show neuroserpin question (id: 1)
+        const filteredQuestions = isGroupActivity ? data.filter((q: Question) => q.id === 1) : data;
+        
+        setQuestions(filteredQuestions);
       } catch (e) {
         if (e instanceof Error) {
           setError(e.message);
@@ -59,7 +67,7 @@ function ControlGroupContent() {
     };
 
     fetchQuestions();
-  }, []);
+  }, [searchParams]);
 
   const fetchLastSubmissions = async () => {
     try {
@@ -113,15 +121,7 @@ function ControlGroupContent() {
   };
 
   const handleGoBackClick = () => {
-    setSelectionLocked(false);
-    setSelectedQuestionId(null);
-    setNewControlColumns(0);
-    setNewControlSelections([]);
-    setControlNames([]);
-    setLastSubmissions([]);
-    setShowSubmissions(false);
-    setCurrentUserSubmissionIds([]);
-    window.scrollTo(0, 0);
+    window.location.href = '/';
   };
 
   const handleBackToInteractive = async () => {

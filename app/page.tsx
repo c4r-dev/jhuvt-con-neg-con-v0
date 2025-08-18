@@ -119,15 +119,7 @@ export default function Home() {
   };
 
   const handleGoBackClick = () => {
-    setSelectionLocked(false);
-    setSelectedQuestionId(null);
-    setNewControlColumns(0);
-    setNewControlSelections([]);
-    setControlNames([]);
-    setLastSubmissions([]);
-    setShowSubmissions(false);
-    setCurrentUserSubmissionIds([]);
-    window.scrollTo(0, 0);
+    window.location.href = '/';
   };
 
   const handleBackToInteractive = async () => {

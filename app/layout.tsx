@@ -12,7 +12,7 @@ export default function RootLayout({
 }>) {
 
   const handleResetClick = () => {
-    window.location.reload();
+    window.location.href = '/';
   };
 
   return (

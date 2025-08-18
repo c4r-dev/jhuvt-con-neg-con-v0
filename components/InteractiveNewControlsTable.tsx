@@ -63,7 +63,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
               METHODOLOGICAL FEATURE
             </th>
             <th style={commonHeaderStyle}>INTERVENTION</th>
-            <th style={commonHeaderStyle}>COMPLETE</th>
+            <th style={commonHeaderStyle}>NO INTERVENTION</th>
             {[...Array(newControlColumns)].map((_, colIndex) => (
               <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>
                 <input
