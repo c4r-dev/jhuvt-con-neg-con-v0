@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
@@ -80,7 +80,7 @@ function ControlGroupContent() {
     }
   }, [questions, selectedQuestionId, selectionLocked]);
 
-  const fetchLastSubmissions = async () => {
+  const fetchLastSubmissions = useCallback(async () => {
     try {
       const rawSessionId = searchParams.get('sessionID') || 'individual';
       const sessionId = rawSessionId === 'individual1' ? 'individual' : rawSessionId;
@@ -96,13 +96,13 @@ function ControlGroupContent() {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
       alert(`Error fetching last submissions: ${errorMessage}`);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     if (showSubmissions) {
       fetchLastSubmissions();
     }
-  }, [showSubmissions, searchParams]);
+  }, [showSubmissions, searchParams, fetchLastSubmissions]);
 
   useEffect(() => {
     if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
@@ -151,8 +151,6 @@ function ControlGroupContent() {
           const errorData = await response.json();
           console.error('Failed to delete submissions:', errorData.error || 'Unknown error');
           alert('Error deleting submissions. They may still appear in the database.');
-        } else {
-          const result = await response.json();
         }
       } catch (error: unknown) {
         console.error('Error deleting submissions:', error);

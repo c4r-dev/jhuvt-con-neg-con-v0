@@ -160,8 +160,6 @@ export default function Home() {
           const errorData = await response.json();
           console.error('Failed to delete submissions:', errorData.error || 'Unknown error');
           alert('Error deleting submissions. They may still appear in the database.');
-        } else {
-          const result = await response.json();
         }
       } catch (error: unknown) {
         console.error('Error deleting submissions:', error);
