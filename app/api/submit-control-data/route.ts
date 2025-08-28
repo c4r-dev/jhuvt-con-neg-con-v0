@@ -11,8 +11,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    console.log('🧪 Testing new submission with sessionId...');
-    console.log('Request body:', JSON.stringify(body, null, 2));
 
     // Test the fixed model
     const submissionData = {
@@ -24,25 +22,21 @@ export async function POST(request: Request) {
       sessionId: body.sessionId || 'test_session_fixed_model'
     };
 
-    console.log('Creating submission with data:', JSON.stringify(submissionData, null, 2));
 
     // Create using the fixed model
     const newSubmission = await Submission.create(submissionData);
     
-    console.log('✅ Submission created:', JSON.stringify(newSubmission.toObject(), null, 2));
 
     // Verify it exists with sessionId
     const verification = await Submission.findById(newSubmission._id);
     const verificationObject = verification ? verification.toObject() : null;
     
-    console.log('✅ Verification query result:', JSON.stringify(verificationObject, null, 2));
 
     // Test querying by sessionId
     const queryTest = await Submission.find({ 
       sessionId: submissionData.sessionId 
     });
     
-    console.log('✅ Query by sessionId found:', queryTest.length, 'submissions');
 
     return NextResponse.json({
       success: true,

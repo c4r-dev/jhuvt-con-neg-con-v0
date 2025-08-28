@@ -69,6 +69,17 @@ function ControlGroupContent() {
     fetchQuestions();
   }, [searchParams]);
 
+  // Auto-select and auto-lock question for group mode when only one question exists
+  useEffect(() => {
+    if (questions.length === 1 && !selectedQuestionId && !selectionLocked) {
+      setSelectedQuestionId(questions[0].id);
+      // Also automatically lock the selection to skip the NEXT button step
+      setTimeout(() => {
+        setSelectionLocked(true);
+      }, 100);
+    }
+  }, [questions, selectedQuestionId, selectionLocked]);
+
   const fetchLastSubmissions = async () => {
     try {
       const rawSessionId = searchParams.get('sessionID') || 'individual';
@@ -142,7 +153,6 @@ function ControlGroupContent() {
           alert('Error deleting submissions. They may still appear in the database.');
         } else {
           const result = await response.json();
-          console.log(`Successfully deleted ${result.deletedCount} submissions`);
         }
       } catch (error: unknown) {
         console.error('Error deleting submissions:', error);
@@ -286,6 +296,13 @@ function ControlGroupContent() {
     if (newControlColumns === 0) {
       return false;
     }
+    // Check that all control names are provided
+    for (let i = 0; i < newControlColumns; i++) {
+      if (!controlNames[i] || !controlNames[i].trim()) {
+        return false;
+      }
+    }
+    // Check that all selections are made and DIFFERENT selections have descriptions
     for (const column of newControlSelections) {
       for (const cell of column) {
         if (cell.value === '') {
@@ -341,6 +358,10 @@ function ControlGroupContent() {
     
     // Store the IDs of submissions created in this session
     setCurrentUserSubmissionIds(submittedIds);
+    setShowSubmissions(true);
+  };
+
+  const handleSkipAddingControl = () => {
     setShowSubmissions(true);
   };
 
@@ -584,11 +605,18 @@ function ControlGroupContent() {
                     >
                       ADD NEW CONTROL
                     </button>
+                    <button
+                      onClick={handleSkipAddingControl}
+                      className="button"
+                      style={{ ...newBaseButtonStyle, marginLeft: '10px', marginRight: '10px' }}
+                    >
+                      SKIP ADDING CONTROL
+                    </button>
                     {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
                       <button
                         onClick={handleSubmit}
                         className="button"
-                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }}
+                        style={{ ...newBaseButtonStyle }}
                       >
                         SUBMIT
                       </button>
@@ -603,7 +631,7 @@ function ControlGroupContent() {
                 )}
                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
                   <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
-                    Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
+                    Please provide a name for each control, make a selection for all cells, and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
                   </p>
                 )}
               </div>

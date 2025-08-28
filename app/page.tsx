@@ -69,6 +69,28 @@ export default function Home() {
     fetchQuestions();
   }, []);
 
+  // Auto-select and auto-lock question only for individual mode after session config is completed
+  useEffect(() => {
+    // Only auto-select for individual mode
+    if (!showConfigPopup && questions.length === 1 && !selectedQuestionId && !selectionLocked && sessionID === 'individual1') {
+      setSelectedQuestionId(questions[0].id);
+      // Also automatically lock the selection to skip the NEXT button step
+      setTimeout(() => {
+        setSelectionLocked(true);
+      }, 100);
+    }
+  }, [showConfigPopup, questions, selectedQuestionId, selectionLocked, sessionID]);
+
+  // Additional effect to handle individual mode when sessionID changes
+  useEffect(() => {
+    if (sessionID === 'individual1' && questions.length === 1 && !selectedQuestionId && !selectionLocked) {
+      setSelectedQuestionId(questions[0].id);
+      setTimeout(() => {
+        setSelectionLocked(true);
+      }, 100);
+    }
+  }, [sessionID, questions, selectedQuestionId, selectionLocked]);
+
   const fetchLastSubmissions = async () => {
     try {
       const response = await fetch('/api/get-submissions');
@@ -140,7 +162,6 @@ export default function Home() {
           alert('Error deleting submissions. They may still appear in the database.');
         } else {
           const result = await response.json();
-          console.log(`Successfully deleted ${result.deletedCount} submissions`);
         }
       } catch (error: unknown) {
         console.error('Error deleting submissions:', error);
@@ -284,6 +305,13 @@ export default function Home() {
     if (newControlColumns === 0) {
       return false;
     }
+    // Check that all control names are provided
+    for (let i = 0; i < newControlColumns; i++) {
+      if (!controlNames[i] || !controlNames[i].trim()) {
+        return false;
+      }
+    }
+    // Check that all selections are made and DIFFERENT selections have descriptions
     for (const column of newControlSelections) {
       for (const cell of column) {
         if (cell.value === '') {
@@ -336,6 +364,10 @@ export default function Home() {
     
     // Store the IDs of submissions created in this session
     setCurrentUserSubmissionIds(submittedIds);
+    setShowSubmissions(true);
+  };
+
+  const handleSkipAddingControl = () => {
     setShowSubmissions(true);
   };
 
@@ -437,22 +469,12 @@ export default function Home() {
   }, {} as Record<number, FetchedSubmission[]>);
 
 
+
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '20px auto 20px auto' }}>
-      {!selectionLocked && !showSubmissions && (
+      {!selectionLocked && !showSubmissions && !showConfigPopup && (questions.length > 1 || (questions.length === 1 && sessionID !== 'individual1')) && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
-           {/* Session Config Popup */}
-     {showConfigPopup && (
-  <Suspense fallback={<div>Loading...</div>}>
-    <SessionConfigPopup
-      open={showConfigPopup}
-      onClose={handleConfigClose}
-      sessionID={sessionID}
-      onSessionChange={setSessionID}
-    />
-  </Suspense>
-)}
           {loading && <p>Loading questions...</p>}
           {error && <p style={{ color: 'red' }}>Error loading questions: {error}</p>}
           {!loading && !error && questions.length > 0 && (
@@ -479,6 +501,18 @@ export default function Home() {
           )}
         </>
       )}
+      
+      {/* Session Config Popup - shown at the beginning */}
+      {showConfigPopup && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <SessionConfigPopup
+            open={showConfigPopup}
+            onClose={handleConfigClose}
+            sessionID={sessionID}
+            onSessionChange={setSessionID}
+          />
+        </Suspense>
+      )}
 
       {selectedQuestion && (
         <div style={{ marginTop: selectedQuestion && selectionLocked ? '0' : '15px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
@@ -499,7 +533,7 @@ export default function Home() {
             </div>
           </div>
           <h4 style={{ marginTop: '30px', marginBottom: '5px' }}>Defining the Intervention:</h4>
-          <p style={{ marginTop: '0', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>These are the Methodological Features we expect to factor into the experimental group. Hover over to review in greater detail.</p>
+          <p style={{ marginTop: '0', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>Below, we break down the intervention of the treatment group into component parts. Hover to review in detail.</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '20px' }}>
             <div style={infoBoxStyle}>
               <h4 style={infoBoxHeaderStyle}>Methodological Features</h4>
@@ -590,11 +624,18 @@ export default function Home() {
                     >
                       ADD NEW CONTROL
                     </button>
+                    <button
+                      onClick={handleSkipAddingControl}
+                      className="button"
+                      style={{ ...newBaseButtonStyle, marginLeft: '10px', marginRight: '10px' }}
+                    >
+                      SKIP ADDING CONTROL
+                    </button>
                     {selectedQuestion && selectionLocked && newControlColumns > 0 && areAllNewControlsValid() && !showSubmissions && (
                       <button
                         onClick={handleSubmit}
                         className="button"
-                        style={{ ...newBaseButtonStyle, marginLeft: '10px' }}
+                        style={{ ...newBaseButtonStyle }}
                       >
                         SUBMIT
                       </button>
@@ -609,7 +650,7 @@ export default function Home() {
                 )}
                 {selectedQuestion && selectionLocked && newControlColumns > 0 && !areAllNewControlsValid() && !showSubmissions && (
                   <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>
-                    Please make a selection for all cells and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
+                    Please provide a name for each control, make a selection for all cells, and provide descriptions for all &quot;DIFFERENT&quot; selections to enable submission.
                   </p>
                 )}
               </div>

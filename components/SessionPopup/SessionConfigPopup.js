@@ -276,8 +276,8 @@ const SessionConfigPopup = ({
 
   const handleModeSelect = (selectedMode) => {
     if (selectedMode === 'individual') {
-      // Route to individual mode with hardcoded sessionID
-      router.push(`/ControlGroup?sessionID=individual1`);
+      // Set individual sessionID and close popup without routing
+      onSessionChange?.('individual1');
       handleClose();
     } else {
       // Generate new sessionID for group mode

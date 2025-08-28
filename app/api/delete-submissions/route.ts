@@ -17,14 +17,12 @@ export async function DELETE(request: Request) {
       }, { status: 400 });
     }
 
-    console.log('🗑️ Deleting submissions with IDs:', submissionIds);
 
     // Delete submissions by their MongoDB _id values
     const deleteResult = await Submission.deleteMany({
       _id: { $in: submissionIds }
     });
 
-    console.log(`✅ Deleted ${deleteResult.deletedCount} submissions`);
 
     return NextResponse.json({
       success: true,

@@ -84,7 +84,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                     padding: '2px 4px',
                     borderRadius: '2px',
                   }}
-                  placeholder="NEW CONTROL"
+                  placeholder="NEW CONTROL NAME"
                 />
                 <span
                   style={{
