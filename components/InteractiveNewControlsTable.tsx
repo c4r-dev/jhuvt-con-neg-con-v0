@@ -60,7 +60,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
               zIndex: 10,
               minWidth: firstColumnWidth,
             }}>
-              METHODOLOGICAL FEATURE
+              COMPONENT OF INTERVENTION
             </th>
             <th style={commonHeaderStyle}>INTERVENTION</th>
             <th style={commonHeaderStyle}>NO INTERVENTION</th>

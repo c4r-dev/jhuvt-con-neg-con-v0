@@ -534,14 +534,14 @@ export default function Home() {
           <p style={{ marginTop: '0', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>Below, we break down the intervention of the treatment group into component parts. Hover to review in detail.</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '20px' }}>
             <div style={infoBoxStyle}>
-              <h4 style={infoBoxHeaderStyle}>Methodological Features</h4>
+              <h4 style={infoBoxHeaderStyle}>Component of Intervention</h4>
               {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
                 <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: '#555' }}>
                   {selectedQuestion.methodologicalConsiderations.map((item, index) => (
                     <li key={index} title={item.description} style={{ marginBottom: '8px', cursor: 'help' }}>{item.feature}</li>
                   ))}
                 </ul>
-              ) : (<p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>No specific methodological features listed for this question.</p>)}
+              ) : (<p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic' }}>No specific components of intervention listed for this question.</p>)}
             </div>
             <div style={infoBoxStyle}>
               <h4 style={infoBoxHeaderStyle}>Measurement</h4>
@@ -600,7 +600,7 @@ export default function Home() {
                   />
                 ) : (
                   <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
-                    No specific methodological features listed for this question to display in the table.
+                    No specific components of intervention listed for this question to display in the table.
                   </p>
                 )}
 

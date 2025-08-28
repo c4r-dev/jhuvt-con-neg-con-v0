@@ -62,7 +62,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
             <thead>
               <tr>
                 <th style={stickyHeaderStyle}>
-                  METHODOLOGICAL FEATURE
+                  COMPONENT OF INTERVENTION
                 </th>
                 <th style={commonHeaderStyle}>INTERVENTION</th>
                 <th style={commonHeaderStyle}>NO INTERVENTION</th>
@@ -75,7 +75,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
               {!activeQuestion.methodologicalConsiderations || activeQuestion.methodologicalConsiderations.length === 0 ? (
                 <tr>
                   <td colSpan={colSpanForNoFeatures} style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: '8px' }}>
-                    No methodological features found for this question.
+                    No components of intervention found for this question.
                   </td>
                 </tr>
               ) : (
