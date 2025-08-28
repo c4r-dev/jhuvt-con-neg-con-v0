@@ -5,8 +5,6 @@ export interface MethodologicalConsideration {
   description: string;
   option1: string;
   option1Text: string;
-  option2: string;
-  option3: string;
   absent: string;
 }
 

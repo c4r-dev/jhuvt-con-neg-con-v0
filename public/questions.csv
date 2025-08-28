@@ -1,0 +1,7 @@
+﻿example,question,independentVariable,dependentVariable,feature,absent,description,option1,option1Text
+Neuroserpin,Does neuroserpin induce axonal elongation during neuronal development?,Neuroserpin protein exposure,Axon length of neurons,Sterilization protocol,Y,"Sterlizing the neuroserpin matches the pre-sterilized medium, but could the sterilization protocol itself affect axon growth?",ABSENT,Absent
+,,,,Protein suspension vehicle,Y,"Is the neuroserpin protein suspended in water, or a buffer of some kind? Could this make a difference?",ABSENT,Absent
+,,,,Protein purification protocol,Y,Could any sort of contaminant or processing artifact from the protein purification process be responsible for axon growth?,ABSENT,Absent
+,,,,Protein addition protocol,Y,"When the cells are treated with neuroserpin, are they exposed to circulating air or shaking of the plates? Could this make a difference?",ABSENT,Absent
+,,,,Presence of a protein,Y,"Neuroserpin has a specific functional role, but it is also a protein. Could the neurons detect or metabolize this added protein in a way that alters growth but is unrelated to the identity of the specific protein?",ABSENT,Absent
+,,,,Neuroserpin functionality,Y,"Neuroserpin has a specific functional role as a serine protease inhibitor. This is the one thing we really want to test, our true independent variable.",ABSENT,Absent
