@@ -581,7 +581,6 @@ function ControlGroupContent() {
                     controlNames={controlNames}
                     showSubmissions={showSubmissions}
                     commonHeaderStyle={commonHeaderStyle}
-                    firstColumnWidth={firstColumnWidth}
                     onNewControlChange={handleNewControlChange}
                     onControlNameChange={handleControlNameChange}
                     onDeleteControlColumn={handleDeleteControlColumn}
@@ -659,7 +658,6 @@ function ControlGroupContent() {
                 commonHeaderStyle={commonHeaderStyle}
                 submittedTableCellStyle={submittedTableCellStyle}
                 submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
-                firstColumnWidth={firstColumnWidth}
                 newBaseButtonStyle={newBaseButtonStyle}
                 getCompleteCellStyle={getCompleteCellStyle}
                 onGoBackClick={handleGoBackClick}

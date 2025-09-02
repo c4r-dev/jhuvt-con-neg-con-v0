@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import InteractiveNewControlsTable from '@/components/InteractiveNewControlsTable';
 import SubmissionsDisplay from '@/components/SubmissionsDisplay';
 import DifferentPopup from '@/components/DifferentPopup';
@@ -91,7 +91,7 @@ export default function Home() {
     }
   }, [sessionID, questions, selectedQuestionId, selectionLocked]);
 
-  const fetchLastSubmissions = async () => {
+  const fetchLastSubmissions = useCallback(async () => {
     try {
       const url = sessionID ? `/api/get-submissions?sessionId=${encodeURIComponent(sessionID)}` : '/api/get-submissions';
       const response = await fetch(url);
@@ -108,13 +108,13 @@ export default function Home() {
       setLastSubmissions([]);
       alert(`Error fetching last submissions: ${errorMessage}`);
     }
-  };
+  }, [sessionID]);
 
   useEffect(() => {
     if (showSubmissions) {
       fetchLastSubmissions();
     }
-  }, [showSubmissions]);
+  }, [showSubmissions, fetchLastSubmissions]);
 
   useEffect(() => {
     if (showSubmissions && lastSubmissions.length > 0 && submissionsBoxRef.current) {
