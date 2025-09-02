@@ -1,6 +1,6 @@
 
 
-// app/api/test-new-submission/route.ts
+// app/api/submit-control-data/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Submission from '../../../models/Submission';
@@ -11,53 +11,48 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
+    // Extract data from request body
+    const { questionId, newControlSelections, controlName, sessionId } = body;
 
-    // Test the fixed model
+    // Validate required fields
+    if (!questionId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Question ID is required' 
+      }, { status: 400 });
+    }
+
+    if (!newControlSelections || !Array.isArray(newControlSelections)) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'New control selections are required and must be an array' 
+      }, { status: 400 });
+    }
+
+    // For individual mode, don't require sessionId but set it to null/undefined 
+    // so the query in get-submissions can handle it properly
     const submissionData = {
-      questionId: body.questionId || 888,
-      newControlSelections: body.newControlSelections || [
-        { value: 'test-value', description: 'Test description' }
-      ],
-      controlName: body.controlName || 'TEST_CONTROL_WITH_SESSION',
-      sessionId: body.sessionId || 'test_session_fixed_model'
+      questionId,
+      newControlSelections,
+      controlName: controlName || 'NEW CONTROL',
+      sessionId: sessionId || undefined // For individual mode, this will be undefined
     };
 
-
-    // Create using the fixed model
+    // Create the submission
     const newSubmission = await Submission.create(submissionData);
-    
-
-    // Verify it exists with sessionId
-    const verification = await Submission.findById(newSubmission._id);
-    const verificationObject = verification ? verification.toObject() : null;
-    
-
-    // Test querying by sessionId
-    const queryTest = await Submission.find({ 
-      sessionId: submissionData.sessionId 
-    });
-    
 
     return NextResponse.json({
       success: true,
-      message: 'Submission successful',
-      data: newSubmission.toObject(),
-      verification: verificationObject,
-      hasSessionIdField: verificationObject !== null && 'sessionId' in verificationObject,
-      queryBySessionIdCount: queryTest.length,
-      sessionIdValue: verificationObject?.sessionId
+      message: 'Control data submitted successfully',
+      data: newSubmission.toObject()
     });
 
   } catch (error: unknown) {
-    console.error('❌ Test submission failed:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Test failed';
+    console.error('Error submitting control data:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during submission';
     return NextResponse.json({ 
       success: false, 
-      error: errorMessage,
-      stack: error instanceof Error ? error.stack : undefined
+      error: errorMessage
     }, { status: 500 });
   }
 }
-
-//if you want to clear the database before testing 
-// use this api - POST http://localhost:3002/api/cleanup-database

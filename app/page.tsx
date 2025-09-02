@@ -335,6 +335,7 @@ export default function Home() {
         questionId: selectedQuestionId,
         newControlSelections: controlColumn,
         controlName: (controlNames[i] && controlNames[i].trim()) || 'NEW CONTROL',
+        sessionId: sessionID || 'individual', // Use sessionID if available, otherwise default to 'individual'
       };
 
       try {

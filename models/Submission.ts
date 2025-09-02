@@ -36,8 +36,8 @@ const SubmissionSchema: Schema = new Schema({
   },
   sessionId: { 
     type: String, 
-    required: true,  // Make this required
-    index: true      // Add index for better query performance
+    required: false,  // Make this optional for individual mode
+    index: true       // Add index for better query performance
   },
   createdAt: { 
     type: Date, 
@@ -49,14 +49,17 @@ const SubmissionSchema: Schema = new Schema({
   strict: true      // Only save fields defined in schema
 });
 
-// Add a pre-save hook to ensure sessionId is not empty
+// Add a pre-save hook to validate sessionId when provided
 SubmissionSchema.pre('save', function(this: ISubmission, next) {
-  if (!this.sessionId || this.sessionId.trim() === '') {
-    const error = new Error('SessionId is required and cannot be empty');
+  // Only validate sessionId if it's provided
+  if (this.sessionId !== undefined && this.sessionId !== null && this.sessionId.trim() === '') {
+    const error = new Error('SessionId cannot be empty when provided');
     return next(error);
   }
-  // Trim sessionId to remove whitespace
-  this.sessionId = this.sessionId.trim();
+  // Trim sessionId if provided
+  if (this.sessionId) {
+    this.sessionId = this.sessionId.trim();
+  }
   next();
 });
 

@@ -25,7 +25,13 @@ export async function GET(request: Request) {
 
       // Handle special case for 'individual' sessions
       if (cleanSessionId === 'individual') {
-        query = { sessionId: { $exists: false } };
+        query = { 
+          $or: [
+            { sessionId: { $exists: false } },
+            { sessionId: null },
+            { sessionId: 'individual' }
+          ]
+        };
       } else {
         query = { sessionId: cleanSessionId };
       }
