@@ -93,7 +93,8 @@ export default function Home() {
 
   const fetchLastSubmissions = async () => {
     try {
-      const response = await fetch('/api/get-submissions');
+      const url = sessionID ? `/api/get-submissions?sessionId=${encodeURIComponent(sessionID)}` : '/api/get-submissions';
+      const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch last submissions');
@@ -103,6 +104,8 @@ export default function Home() {
     } catch (error: unknown) {
       console.error('Error fetching last submissions:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
+      // Set empty array so the table still shows with no data message
+      setLastSubmissions([]);
       alert(`Error fetching last submissions: ${errorMessage}`);
     }
   };
@@ -363,10 +366,16 @@ export default function Home() {
     // Store the IDs of submissions created in this session
     setCurrentUserSubmissionIds(submittedIds);
     setShowSubmissions(true);
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
   const handleSkipAddingControl = () => {
     setShowSubmissions(true);
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
 
@@ -469,7 +478,7 @@ export default function Home() {
 
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '20px auto 20px auto' }}>
+    <div style={{ padding: '20px 10px', maxWidth: '1200px', margin: '20px auto 20px auto' }}>
       {!selectionLocked && !showSubmissions && !showConfigPopup && (questions.length > 1 || (questions.length === 1 && sessionID !== 'individual1')) && (
         <>
           <h2>Select a Question for Your Experiment:</h2>
@@ -518,7 +527,7 @@ export default function Home() {
           <p style={{ marginTop: '10px', marginBottom: '15px', fontStyle: 'italic', color: '#444', fontSize: '0.9rem' }}>
             Take a moment to consider which variable will define our intervention, and which will define our measurement.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '15px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '15px', marginBottom: '20px' }} className="info-boxes">
             <div style={infoBoxStyle}>
               <h4 style={infoBoxHeaderStyle}>INDEPENDENT VARIABLE</h4>
               <p style={{ margin: 0, fontSize: '0.95rem', color: '#555' }}>{selectedQuestion.independentVariable}</p>
@@ -532,7 +541,7 @@ export default function Home() {
           </div>
           <h4 style={{ marginTop: '30px', marginBottom: '5px' }}>Defining the Intervention:</h4>
           <p style={{ marginTop: '0', marginBottom: '15px', fontSize: '0.9rem', color: '#444' }}>Below, we break down the intervention of the treatment group into component parts. Hover to review in detail.</p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }} className="info-boxes">
             <div style={infoBoxStyle}>
               <h4 style={infoBoxHeaderStyle}>Component of Intervention</h4>
               {selectedQuestion.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
@@ -585,19 +594,20 @@ export default function Home() {
                 )}
 
                 {selectedQuestion?.methodologicalConsiderations && selectedQuestion.methodologicalConsiderations.length > 0 ? (
-                  <InteractiveNewControlsTable
-                    methodologicalConsiderations={selectedQuestion.methodologicalConsiderations}
-                    newControlColumns={newControlColumns}
-                    newControlSelections={newControlSelections}
-                    controlNames={controlNames}
-                    showSubmissions={showSubmissions}
-                    commonHeaderStyle={commonHeaderStyle}
-                    firstColumnWidth={firstColumnWidth}
-                    onNewControlChange={handleNewControlChange}
-                    onControlNameChange={handleControlNameChange}
-                    onDeleteControlColumn={handleDeleteControlColumn}
-                    getCompleteCellStyle={getCompleteCellStyle}
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <InteractiveNewControlsTable
+                      methodologicalConsiderations={selectedQuestion.methodologicalConsiderations}
+                      newControlColumns={newControlColumns}
+                      newControlSelections={newControlSelections}
+                      controlNames={controlNames}
+                      showSubmissions={showSubmissions}
+                      commonHeaderStyle={commonHeaderStyle}
+                          onNewControlChange={handleNewControlChange}
+                      onControlNameChange={handleControlNameChange}
+                      onDeleteControlColumn={handleDeleteControlColumn}
+                      getCompleteCellStyle={getCompleteCellStyle}
+                    />
+                  </div>
                 ) : (
                   <p style={{ margin: 0, fontSize: '0.9rem', color: '#777', fontStyle: 'italic', textAlign: 'center' }}>
                     No specific components of intervention listed for this question to display in the table.
@@ -606,11 +616,11 @@ export default function Home() {
 
 
                 {!showSubmissions && (
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '15px' }}>
                     <button
                       onClick={handleGoBackClick}
                       className="button"
-                      style={{ ...newBaseButtonStyle, marginRight: '10px' }}
+                      style={newBaseButtonStyle}
                     >
                       START OVER
                     </button>
@@ -625,7 +635,7 @@ export default function Home() {
                     <button
                       onClick={handleSkipAddingControl}
                       className="button"
-                      style={{ ...newBaseButtonStyle, marginLeft: '10px', marginRight: '10px' }}
+                      style={newBaseButtonStyle}
                     >
                       SKIP ADDING CONTROL
                     </button>
@@ -633,7 +643,7 @@ export default function Home() {
                       <button
                         onClick={handleSubmit}
                         className="button"
-                        style={{ ...newBaseButtonStyle }}
+                        style={newBaseButtonStyle}
                       >
                         SUBMIT
                       </button>
@@ -655,7 +665,7 @@ export default function Home() {
             </>
           )}
 
-          {showSubmissions && lastSubmissions.length > 0 && (
+          {showSubmissions && (
             <div style={{ ...staticBoxStyle, marginTop: '20px' }} ref={submissionsBoxRef}>
               <h3 style={{ marginTop: 0, marginBottom: '5px', textAlign: 'center' }}>
                 Consider how others have designed their controls.
@@ -664,19 +674,20 @@ export default function Home() {
                 Below you can view new controls submitted by other students for this experiment.
               </p>
 
-              <SubmissionsDisplay
-                activeQuestion={selectedQuestion}
-                activeSubmissions={submissionsByQuestionId[selectedQuestionId!]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []}
-                commonHeaderStyle={commonHeaderStyle}
-                submittedTableCellStyle={submittedTableCellStyle}
-                submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
-                firstColumnWidth={firstColumnWidth}
-                newBaseButtonStyle={newBaseButtonStyle}
-                getCompleteCellStyle={getCompleteCellStyle}
-                onGoBackClick={handleGoBackClick}
-                onRefreshSubmissions={fetchLastSubmissions}
-                onBackToInteractive={handleBackToInteractive}
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <SubmissionsDisplay
+                  activeQuestion={selectedQuestion}
+                  activeSubmissions={submissionsByQuestionId[selectedQuestionId!]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || []}
+                  commonHeaderStyle={commonHeaderStyle}
+                  submittedTableCellStyle={submittedTableCellStyle}
+                  submittedStickyFeatureCellStyle={submittedStickyFeatureCellStyle}
+                  newBaseButtonStyle={newBaseButtonStyle}
+                  getCompleteCellStyle={getCompleteCellStyle}
+                  onGoBackClick={handleGoBackClick}
+                  onRefreshSubmissions={fetchLastSubmissions}
+                  onBackToInteractive={handleBackToInteractive}
+                />
+              </div>
             </div>
           )}
         </div>

@@ -14,7 +14,6 @@ interface InteractiveNewControlsTableProps {
   controlNames: string[];
   showSubmissions: boolean;
   commonHeaderStyle: React.CSSProperties;
-  firstColumnWidth: string;
   onNewControlChange: (colIndex: number, rowIndex: number, value: string) => void;
   onControlNameChange: (colIndex: number, newName: string) => void;
   onDeleteControlColumn: (colIndex: number) => void;
@@ -28,7 +27,6 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
   controlNames,
   showSubmissions,
   commonHeaderStyle,
-  firstColumnWidth,
   onNewControlChange,
   onControlNameChange,
   onDeleteControlColumn,
@@ -38,9 +36,15 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
 
   useEffect(() => {
     if (internalTableWrapperRef.current) {
-      internalTableWrapperRef.current.scrollLeft = internalTableWrapperRef.current.scrollWidth;
+      internalTableWrapperRef.current.scrollLeft = 0;
     }
   }, [newControlColumns]);
+  
+  useEffect(() => {
+    if (internalTableWrapperRef.current) {
+      internalTableWrapperRef.current.scrollLeft = 0;
+    }
+  }, []);
 
   const DeleteIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="#666" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
@@ -49,8 +53,8 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
   );
 
   return (
-    <div style={{ overflowX: 'auto' }} ref={internalTableWrapperRef}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '900px' }}>
+    <div style={{ overflowX: 'auto', width: '100%' }} ref={internalTableWrapperRef}>
+      <table style={{ borderCollapse: 'collapse', marginTop: '10px', minWidth: '100%' }}>
         <thead>
           <tr>
             <th style={{
@@ -58,14 +62,14 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
               position: 'sticky',
               left: 0,
               zIndex: 10,
-              minWidth: firstColumnWidth,
+              width: '200px',
             }}>
               COMPONENT OF INTERVENTION
             </th>
-            <th style={commonHeaderStyle}>INTERVENTION</th>
-            <th style={commonHeaderStyle}>NO INTERVENTION</th>
+            <th style={{ ...commonHeaderStyle, width: '30px' }}>INTERVENTION</th>
+            <th style={{ ...commonHeaderStyle, width: '35px' }}>NO INTERVENTION</th>
             {[...Array(newControlColumns)].map((_, colIndex) => (
-              <th key={`new-header-${colIndex}`} style={commonHeaderStyle}>
+              <th key={`new-header-${colIndex}`} style={{ ...commonHeaderStyle, width: '150px' }}>
                 <input
                   type="text"
                   value={controlNames[colIndex] || ''}
@@ -114,7 +118,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
               position: 'sticky',
               left: 0,
               zIndex: 1,
-              minWidth: firstColumnWidth,
+              width: '200px',
             };
 
             return (
@@ -128,7 +132,7 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                   backgroundColor: 'grey',
                   color: 'white',
                   fontWeight: 'normal',
-                  minWidth: '150px',
+                  width: '30px',
                 }}>
                   BASE
                 </td>
@@ -137,8 +141,9 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                     border: '1px solid #ddd',
                     padding: '4px',
                     fontWeight: 'normal',
-                    ...getCompleteCellStyle(item.option1),
-                    minWidth: '100px',
+                    backgroundColor: 'black',
+                    color: 'white',
+                    width: '35px',
                     cursor: 'help',
                   }}
                   title={item.option1Text}
@@ -155,7 +160,6 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                     padding: '2px',
                     borderRadius: '4px',
                     border: '1px solid #ccc',
-                    fontSize: '1rem',
                     fontFamily: 'inherit',
                   };
 
@@ -174,7 +178,8 @@ const InteractiveNewControlsTable: React.FC<InteractiveNewControlsTableProps> = 
                         padding: '4px',
                         textAlign: 'left',
                         fontWeight: 'normal',
-                        minWidth: '150px',
+                        width: '150px',
+                        ...(currentSelection?.value ? {} : { backgroundColor: 'black', color: 'white' }),
                       }}
                       // Set title on TD for the tooltip
                       title={hasDescriptionForHelp ? currentSelection.description : ''}

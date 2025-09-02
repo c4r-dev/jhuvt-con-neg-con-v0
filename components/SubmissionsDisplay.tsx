@@ -10,7 +10,6 @@ interface SubmissionsDisplayProps {
   commonHeaderStyle: React.CSSProperties;
   submittedTableCellStyle: React.CSSProperties;
   submittedStickyFeatureCellStyle: React.CSSProperties; // This style should already include cursor: 'help'
-  firstColumnWidth: string;
   newBaseButtonStyle: React.CSSProperties;
   getCompleteCellStyle: (value: string, customColor?: string) => React.CSSProperties;
   onGoBackClick: () => void;
@@ -24,7 +23,6 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   commonHeaderStyle,
   submittedTableCellStyle,
   submittedStickyFeatureCellStyle,
-  firstColumnWidth,
   newBaseButtonStyle,
   getCompleteCellStyle,
   onGoBackClick,
@@ -38,7 +36,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
   // Show only the last 15 submissions maximum
   const MAX_SUBMISSIONS_TO_DISPLAY = 15;
   const submissionsToDisplay = activeSubmissions.slice(0, MAX_SUBMISSIONS_TO_DISPLAY);
-  const colSpanForNoFeatures = 3 + submissionsToDisplay.length;
+  const colSpanForNoFeatures = 3 + Math.max(1, submissionsToDisplay.length);
   
   // Create a sticky header style that preserves position but uses the common header background color
   const stickyHeaderStyle: React.CSSProperties = {
@@ -46,7 +44,7 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
     position: 'sticky',
     left: 0,
     zIndex: 2,
-    minWidth: firstColumnWidth,
+    width: '180px',
     cursor: 'help',
   };
 
@@ -56,19 +54,25 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
         Experiment Details: {activeQuestion.question}
       </h4>
 
-      {activeSubmissions.length > 0 ? (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '900px' }}>
+      {true && (
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', marginTop: '10px', minWidth: '100%' }}>
             <thead>
               <tr>
                 <th style={stickyHeaderStyle}>
                   COMPONENT OF INTERVENTION
                 </th>
-                <th style={commonHeaderStyle}>INTERVENTION</th>
-                <th style={commonHeaderStyle}>NO INTERVENTION</th>
-                {submissionsToDisplay.map((submission, colIndex) => (
-                  <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, minWidth: '150px' }}>{submission.controlName}</th>
-                ))}
+                <th style={{ ...commonHeaderStyle, width: '30px' }}>INTERVENTION</th>
+                <th style={{ ...commonHeaderStyle, width: '35px' }}>NO INTERVENTION</th>
+                {submissionsToDisplay.length === 0 ? (
+                  <th style={{ ...commonHeaderStyle, width: '150px', textAlign: 'center', fontStyle: 'italic', color: '#777' }}>
+                    Submitted Controls
+                  </th>
+                ) : (
+                  submissionsToDisplay.map((submission, colIndex) => (
+                    <th key={`submitted-header-${colIndex}`} style={{ ...commonHeaderStyle, width: '120px' }}>{submission.controlName}</th>
+                  ))
+                )}
               </tr>
             </thead>
             <tbody>
@@ -100,36 +104,47 @@ const SubmissionsDisplay: React.FC<SubmissionsDisplayProps> = ({
                     >
                       {consideration.option1.toUpperCase()}
                     </td>
-                    {submissionsToDisplay.map((submission, submissionIndex) => {
-                      const controlSelection = submission.newControlSelections[rowIndex];
-                      const cellTitle = controlSelection?.value === 'DIFFERENT' && controlSelection?.description
-                                        ? controlSelection.description
-                                        : (controlSelection?.value || ''); // Title is description or value
+                    {submissionsToDisplay.length === 0 ? (
+                      <td 
+                        style={{ 
+                          ...submittedTableCellStyle, 
+                          textAlign: 'center', 
+                          fontStyle: 'italic', 
+                          color: '#777' 
+                        }}
+                      >
+                        No submissions yet
+                      </td>
+                    ) : (
+                      submissionsToDisplay.map((submission, submissionIndex) => {
+                        const controlSelection = submission.newControlSelections[rowIndex];
+                        const cellTitle = controlSelection?.value === 'DIFFERENT' && controlSelection?.description
+                                          ? controlSelection.description
+                                          : (controlSelection?.value || ''); // Title is description or value
 
-                      const cellStyle: React.CSSProperties = {
-                        ...submittedTableCellStyle,
-                        ...getCompleteCellStyle(controlSelection?.value || '', controlSelection?.color),
-                        cursor: 'help', // Add help cursor as title is always present
-                      };
+                        const cellStyle: React.CSSProperties = {
+                          ...submittedTableCellStyle,
+                          ...getCompleteCellStyle(controlSelection?.value || '', controlSelection?.color),
+                          cursor: 'help', // Add help cursor as title is always present
+                        };
 
-                      return (
-                        <td
-                          key={`${submission._id}-${rowIndex}-submitted-${submissionIndex}`}
-                          style={cellStyle}
-                          title={cellTitle}
-                        >
-                          {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'}
-                        </td>
-                      );
-                    })}
+                        return (
+                          <td
+                            key={`${submission._id}-${rowIndex}-submitted-${submissionIndex}`}
+                            style={cellStyle}
+                            title={cellTitle}
+                          >
+                            {controlSelection?.value ? controlSelection.value.toUpperCase() : '-'}
+                          </td>
+                        );
+                      })
+                    )}
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
-      ) : (
-        <p style={{ textAlign: 'center', color: '#777', fontStyle: 'italic', marginTop: '10px' }}>No recent submissions found for this question.</p>
       )}
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>

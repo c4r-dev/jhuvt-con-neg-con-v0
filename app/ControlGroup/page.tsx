@@ -94,6 +94,8 @@ function ControlGroupContent() {
     } catch (error: unknown) {
       console.error('Error fetching last submissions:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching last submissions.';
+      // Set empty array so the table still shows with no data message
+      setLastSubmissions([]);
       alert(`Error fetching last submissions: ${errorMessage}`);
     }
   }, [searchParams]);
@@ -357,10 +359,16 @@ function ControlGroupContent() {
     // Store the IDs of submissions created in this session
     setCurrentUserSubmissionIds(submittedIds);
     setShowSubmissions(true);
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
   const handleSkipAddingControl = () => {
     setShowSubmissions(true);
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
 
@@ -636,7 +644,7 @@ function ControlGroupContent() {
             </>
           )}
 
-          {showSubmissions && lastSubmissions.length > 0 && (
+          {showSubmissions && (
             <div style={{ ...staticBoxStyle, marginTop: '20px' }} ref={submissionsBoxRef}>
               <h3 style={{ marginTop: 0, marginBottom: '5px', textAlign: 'center' }}>
                 Consider how others have designed their controls.

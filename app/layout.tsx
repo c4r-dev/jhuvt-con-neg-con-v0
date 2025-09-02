@@ -21,6 +21,7 @@ export default function RootLayout({
       <head>
         <title>Set Negative Controls for a Control Group</title>
         <meta name="description" content="Set Negative Controls for a Control Group" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
 
